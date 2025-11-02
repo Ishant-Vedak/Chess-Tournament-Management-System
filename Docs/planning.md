@@ -1,9 +1,9 @@
-# 🧠 Project Planning — Chess Tournament System
+# Project Planning — Chess Tournament System
 
-## ✅ Goal
+## Goal
 Build a web system for chess tournament organizers to register tournaments, receive a secure access code, and manage player/team submissions.
 
-## 🎯 MVP Scope
+## MVP Scope
 
 ### Organizer Flow
 - Visit landing page
@@ -30,7 +30,7 @@ Once logged in:
 
 ---
 
-## 📦 Data Model (Initial)
+## Data Model (Initial)
 
 ### Tournament
 | Field | Type |
@@ -63,7 +63,7 @@ cfc_rating | int (nullable)
 
 ---
 
-## 🌐 API Endpoints (Django REST)
+## API Endpoints (Django REST)
 
 | Route | Method | Purpose |
 |---|---|---|
@@ -76,7 +76,7 @@ cfc_rating | int (nullable)
 
 ---
 
-## ✉️ Email Logic
+## Email Logic
 - On tournament creation:
   - Save to DB
   - Generate secure code
@@ -84,7 +84,7 @@ cfc_rating | int (nullable)
 
 ---
 
-## 🧠 Security Notes
+## Security Notes
 - `secrets` module for code generation
 - Rate-limit login attempts
 - Code only grants access to that tournament
@@ -92,17 +92,17 @@ cfc_rating | int (nullable)
 
 ---
 
-## 🧪 Testing Checklist
-- ✅ Tournament form submits
-- ✅ Email delivered
-- ✅ Login with code
-- ✅ Save team size + rating req
-- ✅ Dashboard loads
-- ✅ Display mock players
+## Testing Checklist
+-  Tournament form submits
+-  Email delivered
+-  Login with code
+-  Save team size + rating req
+-  Dashboard loads
+-  Display mock players
 
 ---
 
-## 🚀 Deployment Plan (Free Tier)
+## Deployment Plan (Free Tier)
 | Layer | Platform |
 |---|---|
 Frontend | Vercel |
@@ -113,7 +113,7 @@ Forms | Google Forms |
 
 ---
 
-## 📅 Development Phases
+##  Development Phases
 
 ### Phase 1 — MVP
 - Organizer registration + code login
@@ -133,11 +133,11 @@ Forms | Google Forms |
 
 ---
 
-## 🏁 Success Criteria
+##  Success Criteria
 Organizer can:
 1. Create tournament  
 2. Receive access code  
 3. Configure event settings  
 4. View team/player data  
 
-If these work, MVP is complete ✅
+If these work, MVP is complete.
