@@ -4,4 +4,5 @@ from django.http import HttpResponse
 # Create your views here.
 
 def landing_page(request):
-    return HttpResponse("This is the landing page")
+    testing = "This is a landing page"
+    return HttpResponse(testing)
