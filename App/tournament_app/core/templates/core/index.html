@@ -1,6 +1,13 @@
-{% block title %} {{testing}} {% endblock %}
-{% block content %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test</title>
 
-<h1> {{testing}}</h1>
-
-{% endblock %}
+    <link rel="stylesheet" href="{% static 'core/styles.css' %}">
+</head>
+<body>
+    <h1>Static test</h1>
+</body>
+</html>
