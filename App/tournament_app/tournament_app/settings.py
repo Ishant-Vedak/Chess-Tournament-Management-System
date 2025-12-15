@@ -84,9 +84,11 @@ WSGI_APPLICATION = 'tournament_app.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'OPTIONS': {
-            'service': os.getenv("PGSERVICE")
-        }
+        'NAME': 'chessdb',
+        'USER': 'postgres',
+        'PASSWORD': os.getenv("POSTGRES_PASS"),
+        'HOST': 'localhost',
+        'PORT': 5432,
     }
 }
 

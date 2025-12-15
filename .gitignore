@@ -1,8 +1,6 @@
 Practice/
 venv/
 App/tournament_app/.env
-App/tournament_app/.my_pgpass
-App/tournament_app/.pg_service.conf
 
 App/tournament_app/tournament_app/__pycache__/
 
