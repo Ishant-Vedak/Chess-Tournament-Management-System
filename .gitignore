@@ -4,6 +4,8 @@ App/tournament_app/.env
 App/tournament_app/.my_pgpass
 App/tournament_app/.pg_service.conf
 
+App/tournament_app/tournament_app/__pycache__/
+
 App/tournament_app/core/__pycache__/
 App/tournament_app/core/migrations/__pycache__/
 
