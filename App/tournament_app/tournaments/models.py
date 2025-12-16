@@ -30,7 +30,7 @@ class Tournament(models.Model):
     name = models.CharField(max_length=300)
     creation_date = models.DateTimeField(default=timezone.now)
     status = models.CharField(max_length=100, choices=Tournament_Status, default=UPCOMING)
-    type = models.CharField(max_length=100)
+    type = models.CharField(max_length=100, choices=Tournament_Type, default=IN_PERSON)
     club = models.ForeignKey(Club, on_delete=models.CASCADE, null=True, blank=True)
     lead_organizer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
