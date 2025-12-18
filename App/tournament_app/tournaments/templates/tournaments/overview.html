@@ -1,0 +1,21 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>All Tournaments</title>
+</head>
+<body>
+    <h1>All Tournaments</h1>
+    <ul>
+        {% for tournament in tournaments %}
+        <li>
+            Name: {{ tournament.name }}
+            Lead Organizer: {{ tournament.lead_organizer}}
+            Club: {{ tournament.club}}
+            Created On: {{ tournament.creation_date }}
+        </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

@@ -3,5 +3,6 @@ from . import views
 
 app_name = "users"
 urlpatterns = [
-    path("", views.user, name="user")
+    path("", views.user, name="user"),
+    path("all/", views.all_users, name="all users")
 ]

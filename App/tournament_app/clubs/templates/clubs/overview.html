@@ -1,0 +1,19 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>All Clubs</title>
+</head>
+<body>
+    <h1>All Clubs</h1>
+    <ul>
+        {% for club in clubs %}
+        <li>
+            Name: {{ club.name }}
+            Website: {{ club.website }}
+        </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

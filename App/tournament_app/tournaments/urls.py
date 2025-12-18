@@ -3,5 +3,6 @@ from . import views
 
 app_name = "tournaments"
 urlpatterns = [
-    path("", views.tournmaent, name="tournament")
+    path("", views.tournament, name="tournament"),
+    path("all/", views.all_tournaments, name="all tournaments")
 ]
