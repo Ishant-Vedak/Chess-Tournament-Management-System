@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
 from .models import Club
 
@@ -13,3 +13,10 @@ def all_clubs(request):
         "clubs": clubs
     }
     return render(request, "clubs/overview.html", context)
+
+def club_details(request, uuid):
+    club = get_object_or_404(Club, uuid=uuid)
+    context = {
+        "club": club
+    }
+    return render(request, "clubs/detail.html", context)

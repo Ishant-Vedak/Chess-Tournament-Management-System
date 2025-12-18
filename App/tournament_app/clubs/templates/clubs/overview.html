@@ -10,7 +10,7 @@
     <ul>
         {% for club in clubs %}
         <li>
-            Name: {{ club.name }}
+            Name: <a href="{% url 'clubs:club_details' club.uuid %}"> {{ club.name }} </a>
             Website: {{ club.website }}
         </li>
         {% endfor %}
