@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from .models import Club
 
@@ -16,7 +17,10 @@ def all_clubs(request):
 
 def club_details(request, uuid):
     club = get_object_or_404(Club, uuid=uuid)
-    context = {
-        "club": club
-    }
-    return render(request, "clubs/detail.html", context)
+    return render(request, "clubs/detail.html", {"club": club})
+
+@login_required
+def my_club(request):
+    club = request.user.clubs.all()
+
+    return render(request, 'clubs/user_specific.html', {"club": club})

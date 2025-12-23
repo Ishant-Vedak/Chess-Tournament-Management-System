@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import path, include
 from core.views import dashboard
+from users.views import CustomLoginView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,6 +26,6 @@ urlpatterns = [
     path('tournaments/', include(("tournaments.urls", 'tournaments'), namespace='tournaments')),
     path('users/', include(("users.urls", 'users'), namespace='users')),
     path('clubs/', include(('clubs.urls', 'clubs'), namespace='clubs')),
-    path("login/", auth_views.LoginView.as_view(), name="login"),
+    path("login/", CustomLoginView.as_view(), name="login"),
     path("dashboard/", dashboard, name='dashboard'),
 ]
