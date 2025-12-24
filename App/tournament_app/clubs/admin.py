@@ -2,6 +2,10 @@ from django.contrib import admin
 from clubs.models import Club, ClubMembership
 
 # Register your models here.
+class ClubMembershipInline(admin.TabularInline):
+    model = Club.members.through
+    extra = 1
+
 
 @admin.register(Club)
 class ClubAdmin(admin.ModelAdmin):
@@ -15,5 +19,14 @@ class ClubAdmin(admin.ModelAdmin):
             },
         ),
     ]   
+    inlines = [
+        ClubMembershipInline,
+    ]
+    exclude = [
+        "members"
+    ]
+
+
+
 
 admin.site.register(ClubMembership)

@@ -3,6 +3,10 @@ from tournaments.models import Tournament, JoinTournament
 
 # Register your models here.
 
+class JoinTournamentInline(admin.TabularInline):
+    model = Tournament.participants.through
+    extra = 1
+
 @admin.register(Tournament)
 class TournamentAdmin(admin.ModelAdmin):
     list_display = ("name", "status", "type")
@@ -18,6 +22,13 @@ class TournamentAdmin(admin.ModelAdmin):
                 "fields": ["name", "lead_organizer", "club", "creation_date", "status", "type",]
             },
         ),
+    ]
+
+    inlines = [
+        JoinTournamentInline
+    ]
+    exclude = [
+        'participants'
     ]
 
 
