@@ -33,9 +33,23 @@ class Tournament(models.Model):
     type = models.CharField(max_length=100, choices=Tournament_Type, default=IN_PERSON)
     club = models.ForeignKey(Club, on_delete=models.CASCADE, null=True, blank=True)
     lead_organizer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    participants = models.ManyToManyField(settings.AUTH_USER_MODEL, through='JoinTournament', related_name='tournaments')
 
     def __str__(self):
         return self.name
     
     def organizer_details(self):
         return f"The tournament is hosted by {self.lead_organizer} from {self.club}"
+    
+
+class JoinTournament(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="joined_tournaments")
+    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name="people_joined")
+    join_date = models.DateTimeField(default=timezone.now)
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'tournament'],
+                name= 'unique_user_tournament_enrolment'
+            )
+        ]

@@ -21,6 +21,6 @@ def club_details(request, uuid):
 
 @login_required
 def my_club(request):
-    club = request.user.clubs.all()
+    clubs = request.user.clubs.all()
 
-    return render(request, 'clubs/user_specific.html', {"club": club})
+    return render(request, 'clubs/user_clubs.html', {"clubs": clubs})

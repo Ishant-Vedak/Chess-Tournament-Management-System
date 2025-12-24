@@ -7,8 +7,8 @@
 </head>
 <body>
     <h1>{{ request.user.username }}'s Club</h1>
-    {% if club %}
-        <p> {{ club.name }} </p>
+    {% if clubs %}
+        <p> {{ clubs.name }} </p>
     {% else %}
         <p> No Club</p>
     {% endif %}

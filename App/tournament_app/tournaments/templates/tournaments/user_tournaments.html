@@ -1,0 +1,18 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ request.user.username }}'s Tournaments</title>
+</head>
+<body>
+    <h1>{{ request.user.username }}'s Tournaments</h1>
+    {% if tournaments %}
+        {% for tournament in tournaments %}
+        <p>{{ tournament.name }}</p>
+        {% endfor %}
+    {% else %}
+        <p> No Tournaments</p>
+    {% endif %}
+</body>
+</html>
