@@ -1,5 +1,5 @@
 from django.contrib import admin
-from clubs.models import Club
+from clubs.models import Club, ClubMembership
 
 # Register your models here.
 
@@ -11,7 +11,9 @@ class ClubAdmin(admin.ModelAdmin):
         (
             "Basic Info",
             {
-                "fields": ['name', 'creation_date', 'website']
+                "fields": ['name', 'creation_date', 'website',]
             },
         ),
     ]   
+
+admin.site.register(ClubMembership)

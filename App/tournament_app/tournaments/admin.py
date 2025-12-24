@@ -1,5 +1,5 @@
 from django.contrib import admin
-from tournaments.models import Tournament
+from tournaments.models import Tournament, JoinTournament
 
 # Register your models here.
 
@@ -19,3 +19,6 @@ class TournamentAdmin(admin.ModelAdmin):
             },
         ),
     ]
+
+
+admin.site.register(JoinTournament)

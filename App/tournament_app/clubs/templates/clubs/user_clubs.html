@@ -8,7 +8,9 @@
 <body>
     <h1>{{ request.user.username }}'s Club</h1>
     {% if clubs %}
-        <p> {{ clubs.name }} </p>
+        {% for club in clubs %}
+        <p>{{ club.name }}</p>
+        {% endfor %}
     {% else %}
         <p> No Club</p>
     {% endif %}
