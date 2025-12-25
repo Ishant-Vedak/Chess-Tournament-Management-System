@@ -5,8 +5,7 @@ from django.contrib.auth.decorators import login_required
 # Create your views here.
 
 def landing_page(request):
-    testing = {"1": "This is a sample message"}
-    return render(request, "core/index.html", {"testing": testing})
+    return render(request, "core/index.html")
 
 @login_required
 def dashboard(request):

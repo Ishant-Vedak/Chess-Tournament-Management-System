@@ -8,8 +8,11 @@
     <link rel="stylesheet" href="{% static 'core/styles.css' %}">
 </head>
 <body>
-    <h1>Static test</h1>
-    <p>{{ testing.1 }}</p>
-    <a href="{% url 'login' %}"><button>Log In</button></a>
+    <div class="nav-bar"> 
+        <div class="logo">Colle</div> <!-- Temporary App Name -->
+        <div class="features">Features</div> <!-- All the stuff like pricing, features and stuff-->
+        <div class="login"><a href="{% url 'login' %}" class="login-link" >Log In</a></div>
+        <div class="darkmode">Toggle</div>
+    </div> <!-- Nav Bar -->
 </body>
 </html>
