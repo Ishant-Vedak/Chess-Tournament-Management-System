@@ -38,8 +38,8 @@ class Tournament(models.Model):
     def __str__(self):
         return self.name
     
-    def organizer_details(self):
-        return f"The tournament is hosted by {self.lead_organizer} from {self.club}"
+    def details(self):
+        return f"The tournament is hosted by {self.lead_organizer} from {self.club}."
     
 
 class JoinTournament(models.Model):
@@ -53,3 +53,6 @@ class JoinTournament(models.Model):
                 name= 'unique_user_tournament_enrolment'
             )
         ]
+
+    def join_statement(self):
+        return f"{self.user} has joined {self.tournament}."

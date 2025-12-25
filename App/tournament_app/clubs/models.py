@@ -16,6 +16,11 @@ class Club(models.Model):
     def __str__(self):
         return self.name
     
+    def details(self):
+        if not self.website:
+            return f'The club is called "{self.name}" and has no website.'
+        return f'The club is called "{self.name}" and its website is {self.website}.'
+    
 class ClubMembership(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="club_memberships")
     club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name='memberships')
@@ -27,3 +32,6 @@ class ClubMembership(models.Model):
                 name= 'unique_user_club_membership'
             )
         ]
+
+    def member_joined(self):
+        return f'{self.user} has joined {self.club}.'
