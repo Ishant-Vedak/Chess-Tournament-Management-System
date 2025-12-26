@@ -41,6 +41,14 @@ class Tournament(models.Model):
     def details(self):
         return f"The tournament is hosted by {self.lead_organizer} from {self.club}."
     
+    def overall_count(self):
+        specific = Tournament.objects.get(name=self.name)
+        count = list(JoinTournament.objects.filter(tournament=specific))
+        if len(count) == 1:
+            return f'There is 1 person in this tournament overall.'
+        return f'There are {len(count)} people in this tournament overall.'
+    
+    
 
 class JoinTournament(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="joined_tournaments")
@@ -54,5 +62,10 @@ class JoinTournament(models.Model):
             )
         ]
 
-    def join_statement(self):
+    def __str__(self):
+        return f'for {self.tournament}'
+
+    def join_details(self):
         return f"{self.user} has joined {self.tournament}."
+    
+    

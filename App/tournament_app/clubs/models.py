@@ -21,6 +21,14 @@ class Club(models.Model):
             return f'The club is called "{self.name}" and has no website.'
         return f'The club is called "{self.name}" and its website is {self.website}.'
     
+    def member_count(self):
+        specific_club = Club.objects.get(name=self.name)
+        count = list(ClubMembership.objects.filter(club=specific_club))
+        if len(count) == 1:
+            return f'There is 1 member.'
+        return f'There are {len(count)} members.'
+    
+
 class ClubMembership(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="club_memberships")
     club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name='memberships')
@@ -33,5 +41,8 @@ class ClubMembership(models.Model):
             )
         ]
 
-    def member_joined(self):
+    def __str__(self):
+        return f'for {self.club}'
+
+    def join_details(self):
         return f'{self.user} has joined {self.club}.'
