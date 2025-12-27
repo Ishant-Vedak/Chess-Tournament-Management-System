@@ -12,7 +12,8 @@
         {% csrf_token %}
         {{ form.as_p }}
         <button type="submit">Login</button>
-        <a href="{% url 'core:landing_page' %}"><button>Back</button></a> <!-- Back button not working for some reason -->
+        <a href="{% url 'core:landing_page' %}"><button type="button">Back</button></a>
+        <a href="{% url 'users:create' %}"><button type="button">Create Account</button></a>
     </form>
 </body>
 </html>
