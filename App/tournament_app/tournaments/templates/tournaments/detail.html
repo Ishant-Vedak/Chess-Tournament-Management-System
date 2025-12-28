@@ -1,0 +1,14 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ tournament.name }}</title>
+</head>
+<body>
+    <h1>{{ tournament.name}}</h1>
+    <p>Status: {{ tournament.status }}</p>
+    <p>Type: {{ tournament.type }}</p>
+    <a href="{% url 'tournaments:join_tournament' %}"><button>Join Tournament</button></a>
+</body>
+</html>

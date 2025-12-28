@@ -10,7 +10,7 @@
     <ul>
         {% for tournament in tournaments %}
         <li>
-            Name: {{ tournament.name }}
+            <a href="{% url 'tournaments:tournament_details' tournament.uuid %}">Name: {{ tournament.name }}</a>
             Lead Organizer: {{ tournament.lead_organizer}}
             Club: {{ tournament.club}}
             Created On: {{ tournament.creation_date }}

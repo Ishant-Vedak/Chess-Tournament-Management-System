@@ -8,5 +8,6 @@
 <body>
     <h1>{{ club.name}}</h1>
     <p>Website: {{ club.website }}</p>
+    <a href="{% url 'clubs:join_club' %}"><button>Join Club</button></a>
 </body>
 </html>
