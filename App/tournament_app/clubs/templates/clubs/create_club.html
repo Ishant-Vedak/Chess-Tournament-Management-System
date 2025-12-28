@@ -1,0 +1,17 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Club</title>
+</head>
+<body>
+    <h1>New Club</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <a href="{% url 'clubs:my_clubs' %}"><button type="submit"> Create Club</button></a>
+        <a href="{% url 'core:dashboard' %}"><button type="button">Back</button></a>
+    </form>
+</body>
+</html>

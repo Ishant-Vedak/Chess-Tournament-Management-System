@@ -43,4 +43,6 @@ class ClubMembershipTestCase(TestCase):
         member1 = ClubMembership(user=user1, club=club)
         member2 = ClubMembership(user=user2, club=club)
         self.assertEqual(member1.join_details(), 'DHC has joined Sample Club.')
+        self.assertEqual(member1.role, "MEMBER")
         self.assertEqual(member2.join_details(), 'organizer has joined Sample Club.')
+        self.assertEqual(member2.role, "MEMBER")

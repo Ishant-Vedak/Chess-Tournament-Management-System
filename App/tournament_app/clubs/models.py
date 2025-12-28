@@ -23,9 +23,9 @@ class Club(models.Model):
     
     def member_count(self):
         count = self.members.count()
-        if len(count) == 1:
+        if count == 1:
             return f'There is 1 member.'
-        return f'There are {len(count)} members.'
+        return f'There are {count} members.'
     
 
 class ClubMembership(models.Model):

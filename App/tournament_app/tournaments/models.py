@@ -43,9 +43,9 @@ class Tournament(models.Model):
     
     def overall_count(self):
         count = self.participants.count()
-        if len(count) == 1:
+        if count == 1:
             return f'There is 1 person in this tournament overall.'
-        return f'There are {len(count)} people in this tournament overall.'
+        return f'There are {count} people in this tournament overall.'
     
     
 

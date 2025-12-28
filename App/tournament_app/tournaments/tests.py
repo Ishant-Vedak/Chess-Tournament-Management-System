@@ -50,3 +50,4 @@ class JoinTournamentTestCase(TestCase):
         tournament = Tournament.objects.get(name='Sample Tournament')
         new_join = JoinTournament(user=participant, tournament=tournament)
         self.assertEqual(new_join.join_details(), 'DHC has joined Sample Tournament.')
+        self.assertEqual(new_join.role, "PARTICIPANT")
