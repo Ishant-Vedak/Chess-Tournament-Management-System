@@ -21,7 +21,7 @@ def tournament_details(request, uuid):
 
 @login_required
 def create_tournament(request):
-    ...
+    return HttpResponse("This page is for creating a tournament.")
 
 @login_required
 def my_tournaments(request):

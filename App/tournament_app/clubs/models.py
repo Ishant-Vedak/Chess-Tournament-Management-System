@@ -22,16 +22,26 @@ class Club(models.Model):
         return f'The club is called "{self.name}" and its website is {self.website}.'
     
     def member_count(self):
-        specific_club = Club.objects.get(name=self.name)
-        count = list(ClubMembership.objects.filter(club=specific_club))
+        count = self.members.count()
         if len(count) == 1:
             return f'There is 1 member.'
         return f'There are {len(count)} members.'
     
 
 class ClubMembership(models.Model):
+
+    MEMBER = "MEMBER"
+    EXECUTIVE = "EXECUTIVE"
+    FOUNDER = 'FOUNDER'
+    Roles = {
+        MEMBER:"Member", 
+        EXECUTIVE:"Executive",
+        FOUNDER: "Founder",
+        }
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="club_memberships")
     club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name='memberships')
+    role = models.CharField(max_length=20, choices=Roles, default=MEMBER)
     join_date = models.DateTimeField(default=timezone.now)
     class Meta:
         constraints = [
@@ -42,7 +52,7 @@ class ClubMembership(models.Model):
         ]
 
     def __str__(self):
-        return f'for {self.club}'
+        return f'{self.user} in {self.club}'
 
     def join_details(self):
         return f'{self.user} has joined {self.club}.'

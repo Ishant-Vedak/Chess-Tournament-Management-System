@@ -7,10 +7,10 @@ from django.conf import settings
 # Create your models here.
 
 class Tournament(models.Model):
-    UPCOMING = "UP"
-    OPEN = "OP"
-    ONGOING = "ON"
-    CLOSED = "CL"
+    UPCOMING = "UPCOMING"
+    OPEN = "OPEN"
+    ONGOING = "ONGOING"
+    CLOSED = "CLOSED"
     Tournament_Status = {
         UPCOMING: "Upcoming",
         OPEN: "Open",
@@ -18,8 +18,8 @@ class Tournament(models.Model):
         CLOSED: "Closed",
     }
 
-    IN_PERSON = "INP"
-    ONLINE = "ONL"
+    IN_PERSON = "IN_PERSON"
+    ONLINE = "ONLINE"
     Tournament_Type = {
         IN_PERSON: "In_Person",
         ONLINE: "Online",
@@ -42,8 +42,7 @@ class Tournament(models.Model):
         return f"The tournament is hosted by {self.lead_organizer} from {self.club}."
     
     def overall_count(self):
-        specific = Tournament.objects.get(name=self.name)
-        count = list(JoinTournament.objects.filter(tournament=specific))
+        count = self.participants.count()
         if len(count) == 1:
             return f'There is 1 person in this tournament overall.'
         return f'There are {len(count)} people in this tournament overall.'
@@ -51,8 +50,17 @@ class Tournament(models.Model):
     
 
 class JoinTournament(models.Model):
+    ORGANIZER = "ORGANIZER"
+    EXECUTIVE = "EXECUTIVE"
+    PARTICIPANT = "PARTICIPANT"
+    Roles = {
+        ORGANIZER: "Organizer",
+        EXECUTIVE: "Executive",
+        PARTICIPANT: "Participant",
+    }
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="joined_tournaments")
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name="people_joined")
+    role = models.CharField(max_length=12, choices=Roles, default=PARTICIPANT)
     join_date = models.DateTimeField(default=timezone.now)
     class Meta:
         constraints = [
@@ -63,7 +71,7 @@ class JoinTournament(models.Model):
         ]
 
     def __str__(self):
-        return f'for {self.tournament}'
+        return f'{self.user} in {self.tournament}'
 
     def join_details(self):
         return f"{self.user} has joined {self.tournament}."
