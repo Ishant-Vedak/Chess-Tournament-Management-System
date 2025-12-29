@@ -1,0 +1,17 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Tournament</title>
+</head>
+<body>
+    <h1>New Tournament</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <a href="{% url 'tournaments:my_tournaments' %}"><button type="submit"> Create Tournament</button></a>
+        <a href="{% url 'dashboard' %}"><button type="button">Back</button></a>
+    </form>
+</body>
+</html>

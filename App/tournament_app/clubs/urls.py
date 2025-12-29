@@ -7,6 +7,5 @@ urlpatterns = [
     path("all/", views.all_clubs, name="all_clubs"),
     path("all/<uuid:uuid>/", views.club_details, name="club_details"),
     path("my_clubs/", views.my_clubs, name="my_clubs"),
-    path("join/", views.join_club, name='join_club'),
     path("create/", views.create_club, name='create_club'),
 ]

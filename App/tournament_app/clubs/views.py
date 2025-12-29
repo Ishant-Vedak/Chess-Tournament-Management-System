@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from .models import Club, ClubMembership
 from .forms import CreateClub
+from django.db import transaction
 
 # Create your views here.
 
@@ -23,21 +24,19 @@ def my_clubs(request):
     return render(request, 'clubs/user_clubs.html', {"clubs": clubs})
 
 @login_required
-def join_club(request):
-    ...
-
-@login_required
 def create_club(request):
     if request.method == "POST":
         form = CreateClub(request.POST)
         if form.is_valid():
             user = request.user
-            club_name = form.cleaned_data['club_name']
-            website = form.cleaned_data['website']
-            club = Club(name=club_name, website=website)
-            club.save()
-            membership = ClubMembership(user=user, club=club, role='FOUNDER')
-            membership.save()
+            with transaction.atomic():
+                club = Club(
+                    name=form.cleaned_data['club_name'], 
+                    website=form.cleaned_data['website']
+                    )
+                club.save()
+                membership = ClubMembership(user=user, club=club, role='FOUNDER')
+                membership.save()
             return redirect('dashboard')
     else:
         form = CreateClub()
