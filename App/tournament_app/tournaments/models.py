@@ -90,4 +90,23 @@ class JoinTournament(models.Model):
     def join_details(self):
         return f"{self.user} has joined {self.tournament}."
     
+
+class Participant(models.Model):
+    id = models.AutoField(primary_key=True)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    name = models.CharField(max_length=150)
+    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
+    rating = models.IntegerField(blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'tournament'],
+                name= 'unique_tournament_participant'
+            )
+        ]
+
+    def __str__(self):
+        return f'{self.name} in {self.tournament}'
     
