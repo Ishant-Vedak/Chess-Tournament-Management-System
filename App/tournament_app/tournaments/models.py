@@ -7,13 +7,15 @@ from django.conf import settings
 # Create your models here.
 
 class Tournament(models.Model):
-    UPCOMING = "UPCOMING"
-    OPEN = "OPEN"
+    DRAFT = "DRAFT"
+    REGISTRATION_OPEN = "REGISTRATION_OPEN"
+    REGISTRATION_CLOSED = "REGISTRATION_CLOSED"
     ONGOING = "ONGOING"
     CLOSED = "CLOSED"
     Tournament_Status = {
-        UPCOMING: "Upcoming",
-        OPEN: "Open",
+        DRAFT: "Draft",
+        REGISTRATION_OPEN: "Registration_Open",
+        REGISTRATION_CLOSED: "Registration_Closed",
         ONGOING: "Ongoing",
         CLOSED: "Closed",
     }
@@ -25,12 +27,24 @@ class Tournament(models.Model):
         ONLINE: "Online",
     }
 
+    SWISS = "SWISS"
+    ROUND_ROBIN = "ROUND_ROBIN"
+    KNOCKOUT = "KNOCKOUT"
+    DOUBLE_ELIMINATION = "DOUBLE_ELIMINATION"
+    Tournament_Format = {
+        SWISS: "Swiss",
+        ROUND_ROBIN: "Round_Robin",
+        KNOCKOUT: "Knockout",
+        DOUBLE_ELIMINATION: "Double_Elimination"
+    }
+
     id = models.AutoField(primary_key=True)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     name = models.CharField(max_length=300)
     creation_date = models.DateTimeField(default=timezone.now)
-    status = models.CharField(max_length=100, choices=Tournament_Status, default=UPCOMING)
+    status = models.CharField(max_length=100, choices=Tournament_Status, default=DRAFT)
     type = models.CharField(max_length=100, choices=Tournament_Type, default=IN_PERSON)
+    format = models.CharField(max_length=100, choices=Tournament_Format, default=SWISS)
     club = models.ForeignKey(Club, on_delete=models.CASCADE, null=True, blank=True)
     lead_organizer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     participants = models.ManyToManyField(settings.AUTH_USER_MODEL, through='JoinTournament', related_name='tournaments')
@@ -47,7 +61,7 @@ class Tournament(models.Model):
             return f'There is 1 person in this tournament overall.'
         return f'There are {count} people in this tournament overall.'
     
-    
+
 
 class JoinTournament(models.Model):
     ORGANIZER = "ORGANIZER"

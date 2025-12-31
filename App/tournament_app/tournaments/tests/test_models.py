@@ -1,5 +1,5 @@
 from django.test import TestCase
-from .models import Tournament, JoinTournament
+from tournaments.models import Tournament, JoinTournament
 from users.models import User
 from clubs.models import Club
 # Create your tests here.
@@ -17,6 +17,7 @@ class TournamentTestCase(TestCase):
     def testingTournament(self):
         tourney = Tournament.objects.get(name='Sample Tournament')
         self.assertEqual(tourney.details(), 'The tournament is hosted by organizer from Sample Club.')
+        self.assertEqual(tourney.status, "DRAFT")
     
     def testingOverallCount_1(self):
         user = User.objects.get(username='DHC')
