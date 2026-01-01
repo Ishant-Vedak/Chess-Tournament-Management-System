@@ -2,6 +2,7 @@ Practice/
 venv/
 App/tournament_app/.env
 *.pyc
+__pycache__/
 
 App/tournament_app/tournament_app/__pycache__/
 

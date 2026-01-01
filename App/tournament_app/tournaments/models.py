@@ -1,5 +1,6 @@
 from django.db import models
 import uuid
+from users.models import User
 from clubs.models import Club
 from django.utils import timezone
 from django.conf import settings
@@ -95,6 +96,7 @@ class Participant(models.Model):
     id = models.AutoField(primary_key=True)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     name = models.CharField(max_length=150)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
     rating = models.IntegerField(blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
@@ -108,5 +110,5 @@ class Participant(models.Model):
         ]
 
     def __str__(self):
-        return f'{self.name} in {self.tournament}'
+        return f'{self.name} in {self.tournament}.'
     
