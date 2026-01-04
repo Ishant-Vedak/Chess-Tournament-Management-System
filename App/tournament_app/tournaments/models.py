@@ -50,6 +50,9 @@ class Tournament(models.Model):
     lead_organizer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     participants = models.ManyToManyField(settings.AUTH_USER_MODEL, through='JoinTournament', related_name='tournaments')
 
+    class Meta:
+        get_latest_by = 'creation_date'
+    
     def __str__(self):
         return self.name
     
@@ -91,6 +94,18 @@ class JoinTournament(models.Model):
     def join_details(self):
         return f"{self.user} has joined {self.tournament}."
     
+
+class TournamentPermission(models.Model):
+    id = models.AutoField(primary_key=True)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('user', 'tournament')
+    
+    def __str__(self):
+        return f'{self.user.username}, Admin of {self.tournament.name}.'
 
 class Participant(models.Model):
     id = models.AutoField(primary_key=True)

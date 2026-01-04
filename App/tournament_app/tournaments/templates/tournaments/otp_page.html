@@ -1,0 +1,14 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ tournament.name }}</title>
+</head>
+<body>
+    <h1>Confirm Creation of {{ tournament.name }}<h1>
+    <p>This page will require an otp, which will be configured later.</p>
+    <a href="{% url 'dashboard' %}"><button>Back</button></a>
+    <a href="{% url 'tournaments:tournament_admin' %}"><button>Go To Tournament</button></a>
+</body>
+</html>

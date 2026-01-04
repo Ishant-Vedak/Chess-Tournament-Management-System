@@ -10,7 +10,7 @@
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
-        <a href="{% url 'tournaments:my_tournaments' %}"><button type="submit"> Create Tournament</button></a>
+        <button type="submit"> Create Tournament</button>
         <a href="{% url 'dashboard' %}"><button type="button">Back</button></a>
     </form>
 </body>
