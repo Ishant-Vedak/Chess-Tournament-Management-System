@@ -91,6 +91,7 @@ def my_tournaments(request):
     for t in user_tournaments:
         if TournamentPermission.objects.filter(user=user, tournament=t).exists():
             admin_tournaments.append(t)
+            continue
         joined_tournaments.append(t)
         continue
     return render(request, 'tournaments/user_tournaments.html', {'tournaments': joined_tournaments, 'admin_tournaments': admin_tournaments})
