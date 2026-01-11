@@ -84,8 +84,16 @@ def create_tournament(request):
 
 @login_required
 def my_tournaments(request):
-    tournaments = request.user.tournaments.all()
-    return render(request, "tournaments/user_tournaments.html", {"tournaments": tournaments})
+    user = request.user
+    admin_tournaments = []
+    joined_tournaments = []
+    user_tournaments = user.tournaments.all()
+    for t in user_tournaments:
+        if TournamentPermission.objects.filter(user=user, tournament=t).exists():
+            admin_tournaments.append(t)
+        joined_tournaments.append(t)
+        continue
+    return render(request, 'tournaments/user_tournaments.html', {'tournaments': joined_tournaments, 'admin_tournaments': admin_tournaments})
 
 def confirm_tournament(request):
     tournament = request.user.tournaments.latest()

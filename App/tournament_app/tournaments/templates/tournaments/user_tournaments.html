@@ -7,13 +7,20 @@
 </head>
 <body>
     <h1>{{ request.user.username }}'s Tournaments</h1>
-    {% if tournaments %}
-        {% for tournament in tournaments %}
-        <p>{{ tournament.name }}</p>
-        {% endfor %}
-    {% else %}
-        <p> No Tournaments</p>
-    {% endif %}
+    <h2> Admin Tournaments</h2>
+    {% for admin_t in admin_tournaments %}
+    <a href="{% url 'tournaments:tournament_admin' admin_t.uuid %}">
+        {{ admin_t.name }}
+    </a>
+    {% endfor %}
+
+    <h2> Joined Tournaments</h2>
+    {% for tournament in tournaments %}
+    <a href="{% url 'tournaments:tournament_details' tournament.uuid %}">
+        {{ tournament.name }}
+    </a>
+    {% endfor %}
+    
     <a href="{% url 'tournaments:create_tournament' %}"><button>Create Tournament</button></a>
 </body>
 </html>
