@@ -26,6 +26,4 @@ Ending Tournament:
 
 ## Current Goal:
 
-Separate a user's admin tournaments from joined tournaments.
- 
- 
+Allow organizer to host tournament.

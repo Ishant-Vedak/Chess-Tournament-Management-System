@@ -9,5 +9,9 @@
     <h1>{{ tournament.name}}</h1>
     <p>Status: {{ tournament.status }}</p>
     <p>Type: {{ tournament.type }}</p>
+    <form method="post" action="{% url 'tournaments:join_tournament' tournament.uuid %}">
+        {% csrf_token %}
+        <button type="submit">Join Tournament</button>
+    </form>
 </body>
 </html>

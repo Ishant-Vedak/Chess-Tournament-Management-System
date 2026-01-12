@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse, HttpResponseForbidden
 from functools import wraps
-from .models import Tournament, JoinTournament, TournamentPermission
+from .models import Tournament, JoinTournament, TournamentPermission, Participant
 from .forms import CreateTournament
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
@@ -52,6 +52,16 @@ def tournament_details(request, uuid):
     return render(request, 'tournaments/detail.html', {"tournament": tournament})
 
 @login_required
+def join_tournament(request, uuid):
+    tournament = get_object_or_404(Tournament, uuid=uuid)
+    if request.method == 'POST':
+        JoinTournament.objects.get_or_create(
+            user=request.user,
+            tournament=tournament
+        )
+    return redirect('dashboard')
+
+@login_required
 def create_tournament(request):
     if request.method == "POST":
         form = CreateTournament(request.POST)
@@ -100,7 +110,34 @@ def confirm_tournament(request):
     tournament = request.user.tournaments.latest()
     return render(request, 'tournaments/otp_page.html', {'tournament': tournament})
 
+# Tournament Admin - Before Hosting
+
+@admin_required
+def main_tournament_page(request, *args, **kwargs):
+    ...
+
 @admin_required
 def tournament_admin(request, *args, **kwargs):
     tournament = request.tournament
-    return render(request, 'tournaments/tournament_admin.html', {'tournament': tournament})
+    signed_in = JoinTournament.objects.filter(tournament=tournament, role = 'PARTICIPANT')
+    others = Participant.objects.filter(tournament=tournament)
+    total = int(len(signed_in) + len(others))
+    return render(request, 'tournaments/tournament_admin.html', {'tournament': tournament, 'total': total})
+
+@admin_required
+def all_participants_in_tournament(request, *args, **kwargs):
+    tournament = request.tournament
+    signed_in = JoinTournament.objects.filter(tournament=tournament, role = 'PARTICIPANT')
+    others = Participant.objects.filter(tournament=tournament)
+    return render(request, 'tournaments/all_participants.html', {'participants': signed_in, 'tournament': tournament, 'others': others})
+
+@admin_required
+def start_tournament(request, *args, **kwargs):
+    ...
+
+@admin_required
+def tournament_round_info(request, *args, **kwargs):
+    ...
+
+
+# Tournament Admin - After Hosting

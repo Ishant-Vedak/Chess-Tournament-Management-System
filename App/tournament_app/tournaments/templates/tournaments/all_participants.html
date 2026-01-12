@@ -1,0 +1,29 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title> All Participants </title>
+</head>
+<body>
+    <h1>{{ tournament.name }}</h1>
+    <h2>Signed-In Participants</h2>
+    {% if participants %}
+    {% for p in participants %}
+    <p>{{p.user.username }}</p>
+    {% endfor %}
+    {% else %}
+    <p>No Signed-In Participants</p>
+    {% endif %}
+
+    <h2>Other Participants</h2>
+    {% if others %}
+    {% for o in others %}
+    <p>{{ o.name }}</p>
+    {% endfor %}
+    {% else %}
+    <p>No Other Participants</p>
+    {% endif %}
+    <a href="{% url 'tournaments:tournament_admin' tournament.uuid %}"><button>Back</button></a>
+</body>
+</html>
