@@ -1,0 +1,21 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ tournament.name }}</title>
+    <link rel="stylesheet" href="{% static 'tournaments/styles.css' %}">
+</head>
+<body>
+    <h1>{{ tournament.name }} Confirmation<h1>
+    <p> These details are <strong>NOT</strong> editable after confirming these. Please check if these details are correct.</p> 
+    <p> Tournament Status: {{ tournament.status }}</p>
+    <p> Tournament Format: {{ tournament.format }}</p>
+    <p> Tournament Club: {{ tournament.club }}</p>
+    <p> Number of Rounds: {{ number_of_rounds }}</p>
+    <p> Number of Participants: {{ number_of_participants }}</p>
+    <button type="submit"> Start Tournament </button>
+    <a href="{% url 'tournaments:tournament_admin' tournament.uuid %}"><button type="button">Back</button></a>
+    
+</body>
+</html>

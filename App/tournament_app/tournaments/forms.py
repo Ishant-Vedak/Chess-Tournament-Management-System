@@ -7,3 +7,7 @@ class CreateTournament(forms.ModelForm):
         fields = ("name", "status", "type", "club")
 
     
+class TournamentSettings(forms.ModelForm):
+    class Meta:
+        model = Tournament
+        fields = ['name', 'creation_date', 'status', 'type', 'format', 'club', 'admins', 'lead_organizer']

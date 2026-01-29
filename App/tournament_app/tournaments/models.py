@@ -50,6 +50,7 @@ class Tournament(models.Model):
     lead_organizer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     participants = models.ManyToManyField(settings.AUTH_USER_MODEL, through='JoinTournament', related_name='tournaments')
     admins = models.ManyToManyField(settings.AUTH_USER_MODEL, through='TournamentPermission', related_name='tournament_admin_perms')
+    rounds = models.IntegerField(default=0,max_length=2)
 
     class Meta:
         get_latest_by = 'creation_date'
@@ -117,6 +118,7 @@ class Participant(models.Model):
     id = models.AutoField(primary_key=True)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     name = models.CharField(max_length=150)
+    random_seed = models.IntegerField(null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
     rating = models.IntegerField(blank=True, null=True)
@@ -133,3 +135,12 @@ class Participant(models.Model):
     def __str__(self):
         return f'{self.name} in {self.tournament}.'
     
+class HostTournament(models.Model):
+    id = models.AutoField(primary_key=True)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
+    total_rounds = models.IntegerField()
+    current_round = models.IntegerField()
+
+    def __str__(self):
+        return f'Hosting model for {self.tournament}.'

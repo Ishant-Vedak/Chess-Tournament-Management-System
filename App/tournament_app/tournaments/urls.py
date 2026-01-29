@@ -15,6 +15,8 @@ urlpatterns = [
 
     #Admin Page of Tournament.
     path('<uuid:uuid>/admin/', views.tournament_admin, name='tournament_admin'),
+    #Tournament Settings Page.
+    path('<uuid:uuid>/settings/', views.tournament_settings, name='tournament_settings'),
     #Page that everyone else sees.
     path('<uuid:uuid>/', views.main_tournament_page, name='main_tournament_page'),
     #Page showing all participants.

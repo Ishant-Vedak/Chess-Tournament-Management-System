@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse, HttpResponseForbidden
 from functools import wraps
 from .models import Tournament, JoinTournament, TournamentPermission, Participant
-from .forms import CreateTournament
+from .forms import CreateTournament, TournamentSettings
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 # Create your views here.
@@ -72,7 +72,8 @@ def create_tournament(request):
                     name=form.cleaned_data['name'],
                     status=form.cleaned_data['status'],
                     type=form.cleaned_data['type'], 
-                    club = form.cleaned_data['club'],
+                    club=form.cleaned_data['club'],
+                    rounds=form.cleaned_data['rounds'],
                     lead_organizer=user
                 )
                 tournament.save()
@@ -133,11 +134,27 @@ def all_participants_in_tournament(request, *args, **kwargs):
 
 @admin_required
 def start_tournament(request, *args, **kwargs):
-    ...
+    tournament = request.tournament
+    number_of_rounds = int(tournament.rounds)
+    number_of_participants = len(Participant.objects.filter(tournament=tournament))
+    return render(request, 'tournaments/tournament_confirmation.html', {'tournament': tournament, 'number_of_rounds': number_of_rounds, 'number_of_participants': number_of_participants})
 
 @admin_required
 def tournament_round_info(request, *args, **kwargs):
     ...
 
+
+@admin_required
+def tournament_settings(request, uuid, **kwargs):
+    tournament = kwargs.get('tournament') or get_object_or_404(Tournament, uuid=uuid)
+    if request.method == 'POST':
+        form = TournamentSettings(request.POST, instance=tournament)
+        if form.is_valid():
+            form.save()
+            return redirect('tournaments:tournament_admin', tournament.uuid)
+    else: 
+        form = TournamentSettings(instance=tournament)
+
+    return render(request, 'tournaments/tournament_settings.html', {'tournament': tournament, 'form': form})
 
 # Tournament Admin - After Hosting

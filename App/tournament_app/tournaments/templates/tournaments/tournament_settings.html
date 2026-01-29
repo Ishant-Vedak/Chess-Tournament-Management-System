@@ -1,0 +1,17 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ tournament.name }}</title>
+</head>
+<body>
+    <h1>{{ tournament.name }} Settings</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Save</button>
+    </form>
+    <a href="{% url 'tournaments:tournament_admin' tournament.uuid %}"><button type="button">Back</button></a>
+</body>
+</html>
