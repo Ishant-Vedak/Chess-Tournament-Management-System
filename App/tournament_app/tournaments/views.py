@@ -1,10 +1,11 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse, HttpResponseForbidden
 from functools import wraps
-from .models import Tournament, JoinTournament, TournamentPermission, Participant
+from .models import Tournament, JoinTournament, Participant, HostTournament
 from .forms import CreateTournament, TournamentSettings
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
+from .services import rounds
 # Create your views here.
 
 #Decorators 
@@ -22,7 +23,7 @@ def admin_required(view_func=None, *, tournament_uuid='uuid'):
                 uuid = args[0]
             tournament = get_object_or_404(Tournament, uuid=uuid)
             request.tournament = tournament
-            if not TournamentPermission.objects.filter(user=request.user, tournament=tournament).exists():
+            if not JoinTournament.objects.filter(user=request.user, tournament=tournament, role__in= ['ADMIN', 'ORGANIZER']).exists():
                 return HttpResponseForbidden("You do not have permission to view this page.")
             # Pass tournament to the wrapped view via kwargs so view signatures stay flexible
             kwargs['tournament'] = tournament
@@ -83,11 +84,6 @@ def create_tournament(request):
                     role="ORGANIZER",
                 )
                 join.save()
-                permissions = TournamentPermission(
-                    user=user,
-                    tournament=tournament
-                )
-                permissions.save()
             return redirect('tournaments:confirm_tournament')
     else:
         form = CreateTournament()
@@ -100,7 +96,7 @@ def my_tournaments(request):
     joined_tournaments = []
     user_tournaments = user.tournaments.all()
     for t in user_tournaments:
-        if TournamentPermission.objects.filter(user=user, tournament=t).exists():
+        if JoinTournament.objects.filter(user=user, tournament=t).exists():
             admin_tournaments.append(t)
             continue
         joined_tournaments.append(t)
@@ -140,8 +136,11 @@ def start_tournament(request, *args, **kwargs):
     return render(request, 'tournaments/tournament_confirmation.html', {'tournament': tournament, 'number_of_rounds': number_of_rounds, 'number_of_participants': number_of_participants})
 
 @admin_required
-def tournament_round_info(request, *args, **kwargs):
-    ...
+def hosting_tournament_round(request, uuid):
+    tournament = get_object_or_404(Tournament, uuid=uuid)
+    hosting = HostTournament.objects.create(tournament=tournament)
+    hosting.total_rounds = tournament.rounds
+    rounds.generate_pairings(tournament=tournament)
 
 
 @admin_required

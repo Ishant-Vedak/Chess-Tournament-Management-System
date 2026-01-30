@@ -14,7 +14,7 @@
     <p> Tournament Club: {{ tournament.club }}</p>
     <p> Number of Rounds: {{ number_of_rounds }}</p>
     <p> Number of Participants: {{ number_of_participants }}</p>
-    <button type="submit"> Start Tournament </button>
+    <a href=""><button> Start Tournament </button></a>
     <a href="{% url 'tournaments:tournament_admin' tournament.uuid %}"><button type="button">Back</button></a>
     
 </body>

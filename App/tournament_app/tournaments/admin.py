@@ -1,6 +1,5 @@
 from django.contrib import admin
-from tournaments.models import Tournament, JoinTournament, TournamentPermission
-
+from tournaments.models import Tournament, JoinTournament
 # Register your models here.
 
 class JoinTournamentInline(admin.TabularInline):
@@ -33,4 +32,3 @@ class TournamentAdmin(admin.ModelAdmin):
 
 
 admin.site.register(JoinTournament)
-admin.site.register(TournamentPermission)

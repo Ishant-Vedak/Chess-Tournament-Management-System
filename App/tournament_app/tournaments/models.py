@@ -31,7 +31,7 @@ class Tournament(models.Model):
     SWISS = "SWISS"
     ROUND_ROBIN = "ROUND_ROBIN"
     KNOCKOUT = "KNOCKOUT"
-    DOUBLE_ELIMINATION = "DOUBLE_ELIMINATION"
+    DOUBLE_ELIMINATION = "DOUBLE_ELIMINATION" #Advanced, maybe for the future.
     Tournament_Format = {
         SWISS: "Swiss",
         ROUND_ROBIN: "Round_Robin",
@@ -49,8 +49,7 @@ class Tournament(models.Model):
     club = models.ForeignKey(Club, on_delete=models.CASCADE, null=True, blank=True)
     lead_organizer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     participants = models.ManyToManyField(settings.AUTH_USER_MODEL, through='JoinTournament', related_name='tournaments')
-    admins = models.ManyToManyField(settings.AUTH_USER_MODEL, through='TournamentPermission', related_name='tournament_admin_perms')
-    rounds = models.IntegerField(default=0,max_length=2)
+    rounds = models.IntegerField(default=0)
 
     class Meta:
         get_latest_by = 'creation_date'
@@ -95,24 +94,6 @@ class JoinTournament(models.Model):
 
     def join_details(self):
         return f"{self.user} has joined {self.tournament}."
-    
-
-class TournamentPermission(models.Model):
-    id = models.AutoField(primary_key=True)
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name='administrators')
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['user', 'tournament'],
-                name= 'unique_tournament_admin'
-            )
-        ]
-    
-    def __str__(self):
-        return f'{self.user.username}, Admin of {self.tournament.name}.'
 
 class Participant(models.Model):
     id = models.AutoField(primary_key=True)
@@ -123,6 +104,7 @@ class Participant(models.Model):
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
     rating = models.IntegerField(blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
+    points = models.IntegerField(default=0)
 
     class Meta:
         constraints = [
