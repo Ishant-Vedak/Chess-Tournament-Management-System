@@ -137,7 +137,7 @@ def all_participants_in_tournament(request, *args, **kwargs):
     tournament = request.tournament
     signed_in = JoinTournament.objects.filter(tournament=tournament, role = 'PARTICIPANT')
     for si in signed_in:
-        rounds.add_user_as_participant(user=si, tournament=tournament)
+        rounds.add_user_as_participant(user=si.user, tournament=tournament)
     others = Participant.objects.filter(tournament=tournament)
     return render(request, 'tournaments/all_participants.html', {'participants': signed_in, 'tournament': tournament, 'others': others})
 
@@ -169,7 +169,7 @@ def hosting_tournament_round(request, uuid, round_num, *args, **kwargs):
     :param kwargs: Description
     '''
     tournament = get_object_or_404(Tournament, uuid=uuid)
-    hosting= HostTournament.objects.get(tournament=tournament, current_round=round_num)
+    hosting= tournament.host
     pairs = rounds.generate_pairings(tournament=tournament)
     matches = []
     m = Match.objects.filter(tournament=tournament, round_num=round_num)
@@ -197,6 +197,31 @@ def hosting_tournament_round(request, uuid, round_num, *args, **kwargs):
     # In the URL, the link requires the tournament uuid and the round_num
     return render(request, 'tournaments/tournament_round.html', context)
 
+@admin_required
+def end_tournament_round(request, uuid, round_num, *args, **kwargs):
+    '''
+    This view is for ending a round in a live tournament. It should add 1 to the current_round att of the HostTournament model, make the round_is_active att false, and display info about the round, which is what the points of the participants after the round is. 
+    
+    :param request: Description
+    :param uuid: Description
+    :param round_num: Description
+    :param args: Description
+    :param kwargs: Description
+    '''
+    tournament = get_object_or_404(Tournament, uuid=uuid)
+    hosting= HostTournament.objects.get(tournament=tournament)
+    matches = Match.objects.filter(tournament=tournament, round_num = round_num)
+    round_num += 1 
+    hosting.current_round = round_num
+    hosting.save()
+    rounds.end_round(tournament=tournament)
+
+    context = {
+        'tournament': tournament,
+        'matches': matches,
+        'round_num': round_num,
+    }
+    return render(request, 'tournaments/round_end.html', context)
 
 @admin_required
 def tournament_settings(request, uuid, **kwargs):

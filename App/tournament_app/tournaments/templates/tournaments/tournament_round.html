@@ -12,5 +12,6 @@
     {% endfor %}
 
     <p>{{ round_num }}</p>
+    <a href="{% url 'tournaments:round_end' tournament.uuid round_num  %}"><button>End Round</button></a>
 </body>
 </html>

@@ -128,7 +128,8 @@ class HostTournament(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     tournament = models.OneToOneField(
         Tournament, 
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name='host'
     )
     total_rounds = models.IntegerField(default=0)
     current_round = models.IntegerField(default=0)

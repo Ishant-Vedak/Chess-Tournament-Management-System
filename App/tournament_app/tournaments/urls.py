@@ -28,6 +28,7 @@ urlpatterns = [
     #Hosting Tournament
 
     path('<uuid:uuid>/<int:round_num>/', views.hosting_tournament_round, name='tournament_round'),
+    path('<uuid:uuid>/<int:round_num>/end', views.end_tournament_round, name='round_end'),
 ]
 
 # Planned URLs:

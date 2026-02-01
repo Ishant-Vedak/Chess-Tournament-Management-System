@@ -1,0 +1,16 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ tournament.name }}</title>
+</head>
+<body>
+    <p> This page will display the stats at the end of the round.</p>
+
+    {% for match in matches %}
+    <p>{{ match.player_1.name }}: {{ match.player_1.points }} - {{ match.player_2.name }}: {{ match.player_2.points }}</p>
+    {% endfor %}
+    <a href="{% url 'tournaments:tournament_round' uuid=tournament.uuid round_num=round_num %}"><button>Next Round</button></a>
+</body>
+</html>
