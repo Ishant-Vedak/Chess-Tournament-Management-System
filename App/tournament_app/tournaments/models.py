@@ -69,6 +69,9 @@ class Tournament(models.Model):
 
 
 class JoinTournament(models.Model):
+    '''
+    This model is for adding people to tournaments, either as a participant, an admin or an organizer. 
+    '''
     ORGANIZER = "ORGANIZER"
     ADMIN = "ADMIN"
     PARTICIPANT = "PARTICIPANT"
@@ -96,6 +99,9 @@ class JoinTournament(models.Model):
         return f"{self.user} has joined {self.tournament}."
 
 class Participant(models.Model):
+    '''
+    This model is for a Participant in a tournament. It other than a name, it has a random seed (used for creating pairings), rating, email and points. 
+    '''
     id = models.AutoField(primary_key=True)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     name = models.CharField(max_length=150)
@@ -120,9 +126,35 @@ class Participant(models.Model):
 class HostTournament(models.Model):
     id = models.AutoField(primary_key=True)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
-    total_rounds = models.IntegerField()
-    current_round = models.IntegerField()
+    tournament = models.OneToOneField(
+        Tournament, 
+        on_delete=models.CASCADE
+    )
+    total_rounds = models.IntegerField(default=0)
+    current_round = models.IntegerField(default=0)
+    round_is_active = models.BooleanField(default=False)
 
     def __str__(self):
         return f'Hosting model for {self.tournament}.'
+
+class Match(models.Model):
+    '''
+    This model is for a match between two players in a round. It will use a tournament from Tournament model for identification and filtering, and a round number to specifiy the round in the tournament. Then it will take two Participant models, found using p1 and p2, to create a match between two players. 
+    Main purpose is to keep the same pairings for a round regardless of the page being refreshed. 
+    '''
+    WIN = "WIN"
+    DRAW = "DRAW"
+    LOSS = "LOSS"
+    Results = {
+       WIN: 'Win',
+       DRAW: 'Draw',
+       LOSS: 'Loss',
+    }
+
+    id = models.AutoField(primary_key=True)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
+    round_num = models.IntegerField(default=0)
+    player_1 = models.ForeignKey(Participant, related_name='p1', on_delete=models.CASCADE)
+    player_2 = models.ForeignKey(Participant, related_name='p2', on_delete=models.CASCADE)
+    p1_result = models.CharField(max_length=4, choices=Results, default=DRAW)

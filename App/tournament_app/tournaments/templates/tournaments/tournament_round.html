@@ -6,6 +6,11 @@
     <title>{{ tournament.name }}</title>
 </head>
 <body>
-    <h1>{{ tournament.name }} Admin Page<h1>
+    <h1>{{ tournament.name }} Round {{ hosting.current_round }}<h1>
+    {% for match in matches %}
+    <p>{{ match.player_1.name }} vs {{ match.player_2.name }}</p>
+    {% endfor %}
+
+    <p>{{ round_num }}</p>
 </body>
 </html>
