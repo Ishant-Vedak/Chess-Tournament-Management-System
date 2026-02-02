@@ -27,8 +27,12 @@ urlpatterns = [
     
     #Hosting Tournament
 
+    # Round for a Tournament.
     path('<uuid:uuid>/<int:round_num>/', views.hosting_tournament_round, name='tournament_round'),
+    # End of round for a Tournament, showing the total points of all participants.
     path('<uuid:uuid>/<int:round_num>/end', views.end_tournament_round, name='round_end'),
+    # End of Tournament, showing the rankings of people, who won, and should give a document to download at the end.
+    path('<uuid:uuid>/end/', views.tournament_end, name='tournament_end'),
 ]
 
 # Planned URLs:

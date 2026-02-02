@@ -50,6 +50,7 @@ class Tournament(models.Model):
     lead_organizer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     participants = models.ManyToManyField(settings.AUTH_USER_MODEL, through='JoinTournament', related_name='tournaments')
     rounds = models.IntegerField(default=0)
+    is_finished = models.BooleanField(default=False)
 
     class Meta:
         get_latest_by = 'creation_date'

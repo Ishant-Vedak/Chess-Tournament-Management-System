@@ -8,7 +8,11 @@
 <body>
     <h1>{{ tournament.name }} Admin Page<h1>
     <h2> Total Participants: {{ total }} </h2>
+    {% if tournament.is_finished %}
+    <a href="{% url 'tournaments:tournament_end' tournament.uuid %}"><button>View Tournament Results</button></a>
+    {% else %}
     <a href="{% url 'tournaments:start_tournament' tournament.uuid %}"><button>Start Tournament</button></a>
+    {% endif %}
     <a href="{% url 'tournaments:all_participants' tournament.uuid %}"><button>View All Participants</button></a>
     <a href="{% url 'tournaments:tournament_settings' tournament.uuid %}"><button>Tournament Settings</button></a>
     <a href="{% url 'dashboard' %}"><button>Back</button></a>

@@ -6,11 +6,15 @@
     <title>{{ tournament.name }}</title>
 </head>
 <body>
-    <p> This page will display the stats at the end of the round.</p>
+    <p> End of {{ round_num }}</p>
 
     {% for match in matches %}
     <p>{{ match.player_1.name }}: {{ match.player_1.points }} - {{ match.player_2.name }}: {{ match.player_2.points }}</p>
     {% endfor %}
+    {% if round_num >= tournament.rounds %}
+    <a href="{% url 'tournaments:tournament_end' uuid=tournament.uuid %}"><button>End Tournament</button></a>
+    {% else %}
     <a href="{% url 'tournaments:tournament_round' uuid=tournament.uuid round_num=round_num %}"><button>Next Round</button></a>
+    {% endif %}
 </body>
 </html>

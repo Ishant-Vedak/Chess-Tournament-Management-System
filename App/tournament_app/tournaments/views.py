@@ -187,12 +187,14 @@ def hosting_tournament_round(request, uuid, round_num, *args, **kwargs):
             matches.append(match)
     rounds.start_round(tournament=tournament)
     rn = rounds.step_round(tournament=tournament)
+    drn = rn + 1
 
     context = {
         'tournament': tournament,
         'hosting': hosting,
         'matches': matches,
         'round_num': rn,
+        'display_round_num': drn,
     }
     # In the URL, the link requires the tournament uuid and the round_num
     return render(request, 'tournaments/tournament_round.html', context)
@@ -224,7 +226,7 @@ def end_tournament_round(request, uuid, round_num, *args, **kwargs):
     return render(request, 'tournaments/round_end.html', context)
 
 @admin_required
-def tournament_settings(request, uuid, **kwargs):
+def tournament_settings(request, uuid, *args, **kwargs):
     tournament = kwargs.get('tournament') or get_object_or_404(Tournament, uuid=uuid)
     if request.method == 'POST':
         form = TournamentSettings(request.POST, instance=tournament)
@@ -236,4 +238,15 @@ def tournament_settings(request, uuid, **kwargs):
 
     return render(request, 'tournaments/tournament_settings.html', {'tournament': tournament, 'form': form})
 
+@admin_required
+def tournament_end(request, uuid, *args, **kwargs):
+
+    tournament = get_object_or_404(Tournament, uuid=uuid)
+    tournament.is_finished = True
+
+    context = {
+        'tournament': tournament
+    }
+
+    return render(request, 'tournaments/tournament_end.html', context)
 # Tournament Admin - After Hosting
