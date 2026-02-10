@@ -1,5 +1,21 @@
+*, *::after, *::before {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+
+    transition: background-color 0.3s ease, color 0.3s ease;
+
+    -webkit-tap-highlight-color: transparent;
+}
+
 p {
     font-size: 1rem;
     font-weight: normal;
     margin: 0.5em 0;
+    
+}
+
+
+.no_dihsplay{
+    display: none;
 }

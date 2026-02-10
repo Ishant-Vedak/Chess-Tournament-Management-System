@@ -1,7 +1,8 @@
-from tournaments.models import Tournament, Participant, JoinTournament, HostTournament
+from tournaments.models import Tournament, Participant, JoinTournament, HostTournament, Match
 from users.models import User
 from tournaments.services.state import InvalidState
 import random, math
+from django.shortcuts import get_object_or_404
 
 def add_user_as_participant(user: User, tournament: Tournament):
     '''
@@ -151,3 +152,32 @@ def step_round(tournament: Tournament):
     return int(hosting.current_round)
 
     
+
+def calculate_match_results(t: Tournament, rn: int, result: str, p1_uuid: str):
+    '''
+    Calculates the match results, based on the result of the first player. 
+    
+    :param t: Tournament in which match is taking place. 
+    :type t: Tournament
+    :param rn: Round Number
+    :type rn: int
+    :param result: Result of Match
+    :type result: str
+    :param p1_uuid: UUID of P1.
+    :type p1_uuid: str
+    '''
+
+    p1 = Participant.objects.get(uuid=p1_uuid)
+    match = get_object_or_404(Match, tournament=t, round_num=rn, player_1=p1)
+    match.p1_result = result
+    if result == 'WIN': 
+        p2_result = 'LOSS'
+    elif result == 'DRAW':
+        p2_result = 'DRAW'
+    else:
+        p2_result = 'WIN'
+    match.p2_result = p2_result
+    match.save()
+
+    return p2_result
+

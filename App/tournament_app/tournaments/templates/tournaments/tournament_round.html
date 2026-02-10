@@ -3,13 +3,26 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <link rel="stylesheet" href="{% static 'tournaments/round_layout.css' %}">
+    <link rel="stylesheet" href="{% static 'tournaments/styles.css' %}">
     <title>{{ tournament.name }}</title>
 </head>
 <body>
-    <h1>{{ tournament.name }} Round {{ display_round_num }}/{{ tournament.rounds }}<h1>
+    <h1>{{ tournament.name }} Round {{ round_num }}/{{ tournament.rounds }}</h1>
     {% for match in matches %}
-    <p>{{ match.player_1.name }} vs {{ match.player_2.name }}</p>
+    <div class="pairing-wrapper">
+        <form class="pairing-form" method="post" action="{% url 'tournaments:match_result' tournament.uuid round_num match.player_1.uuid %}">
+            {% csrf_token %}
+            <button type="button" class="p1_result" name="result" data-value="WIN">W</button>
+            <button type="button" class="p1_result" name="result" data-value="DRAW">D</button>
+            <button type="button" class="p1_result" name="result" daat-value="LOSS">L</button> 
+        </form>
+        <p class="pairing">{{ match.player_1.name }} vs {{ match.player_2.name }}</p>
+        <div class="no_dihsplay p2_result"></div>
+    </div>
+    
     {% endfor %}
     <a href="{% url 'tournaments:round_end' tournament.uuid round_num  %}"><button>End Round</button></a>
+    <script src="{% static 'tournaments/match_result.js' %}" defer></script>
 </body>
 </html>

@@ -29,8 +29,10 @@ urlpatterns = [
 
     # Round for a Tournament.
     path('<uuid:uuid>/<int:round_num>/', views.hosting_tournament_round, name='tournament_round'),
+    # Result for a Match in a Tournament.
+    path('<uuid:uuid>/<int:round_num>/<uuid:p1_uuid>/match_result', views.match_result, name='match_result'),
     # End of round for a Tournament, showing the total points of all participants.
-    path('<uuid:uuid>/<int:round_num>/end', views.end_tournament_round, name='round_end'),
+    path('<uuid:uuid>/<int:round_num>/results', views.end_tournament_round, name='round_end'),
     # End of Tournament, showing the rankings of people, who won, and should give a document to download at the end.
     path('<uuid:uuid>/end/', views.tournament_end, name='tournament_end'),
 ]

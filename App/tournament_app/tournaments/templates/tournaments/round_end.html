@@ -14,7 +14,7 @@
     {% if round_num >= tournament.rounds %}
     <a href="{% url 'tournaments:tournament_end' uuid=tournament.uuid %}"><button>End Tournament</button></a>
     {% else %}
-    <a href="{% url 'tournaments:tournament_round' uuid=tournament.uuid round_num=round_num %}"><button>Next Round</button></a>
+    <a href="{% url 'tournaments:tournament_round' uuid=tournament.uuid round_num=next_round %}"><button>Next Round: Round {{ next_round }}</button></a>
     {% endif %}
 </body>
 </html>

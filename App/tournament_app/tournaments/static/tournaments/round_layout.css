@@ -1,0 +1,22 @@
+.pairings-wrapper{
+    display: flex;
+    flex-direction: row;
+}
+
+.pairings-form{
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+}
+
+.p1_result{
+    border-radius: 10%;
+    border-width: 1px;
+    border-style: solid;
+    cursor: pointer;
+}
+
+.pairing{
+    display: inline-block;
+    width: fit-content;
+}

@@ -111,7 +111,7 @@ class Participant(models.Model):
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
     rating = models.IntegerField(blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
-    points = models.IntegerField(default=0)
+    points = models.DecimalField(default=0, decimal_places=1, max_digits=3)
 
     class Meta:
         constraints = [
@@ -133,7 +133,7 @@ class HostTournament(models.Model):
         related_name='host'
     )
     total_rounds = models.IntegerField(default=0)
-    current_round = models.IntegerField(default=0)
+    current_round = models.IntegerField(default=1)
     round_is_active = models.BooleanField(default=False)
 
     def __str__(self):
@@ -160,3 +160,4 @@ class Match(models.Model):
     player_1 = models.ForeignKey(Participant, related_name='p1', on_delete=models.CASCADE)
     player_2 = models.ForeignKey(Participant, related_name='p2', on_delete=models.CASCADE)
     p1_result = models.CharField(max_length=4, choices=Results, default=DRAW)
+    p2_result = models.CharField(max_length=4, choices=Results, default=DRAW)

@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponse, HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from functools import wraps
 from .models import Tournament, JoinTournament, Participant, HostTournament, Match
 from .forms import CreateTournament, TournamentSettings
@@ -138,8 +138,12 @@ def all_participants_in_tournament(request, *args, **kwargs):
     signed_in = JoinTournament.objects.filter(tournament=tournament, role = 'PARTICIPANT')
     for si in signed_in:
         rounds.add_user_as_participant(user=si.user, tournament=tournament)
-    others = Participant.objects.filter(tournament=tournament)
-    return render(request, 'tournaments/all_participants.html', {'participants': signed_in, 'tournament': tournament, 'others': others})
+    participants = Participant.objects.filter(tournament=tournament).exclude(name='BYE')
+    return render(request, 'tournaments/all_participants.html', {
+        'tournament': tournament, 
+        'participants': participants,
+        'participants_len': len(participants),
+        })
 
 @admin_required
 def start_tournament(request, *args, **kwargs):
@@ -163,20 +167,22 @@ def hosting_tournament_round(request, uuid, round_num, *args, **kwargs):
     View for a tournament round. First it should receive the tournament model from request, and give 404 if the uuid doesn't match. Then it should find the related HostTournament model, and if not found then create it. The model should have the total_rounds = tournament.rounds, and the current_round=round_num. Then it should generate the pairings, and then start the round. Starting the round will return a list of tuples, each tuple being a pair in the round. 
     
     :param request: Description
-    :param uuid: Description
+    :param uuid: Tournament UUID
     :param round_num: Description
     :param args: Description
     :param kwargs: Description
     '''
     tournament = get_object_or_404(Tournament, uuid=uuid)
-    hosting= tournament.host
-    pairs = rounds.generate_pairings(tournament=tournament)
+    hosting= get_object_or_404(HostTournament, tournament=tournament)
+    hosting.current_round = round_num
+    hosting.save()
     matches = []
     m = Match.objects.filter(tournament=tournament, round_num=round_num)
-    if m.exists() and m.count() == len(pairs):
-        for match in m:
-            matches.append(match)
+    if m.exists():
+        for ma in m:
+            matches.append(ma)
     else:
+        pairs = rounds.generate_pairings(tournament=tournament)
         for pair in pairs:
             match, created = Match.objects.get_or_create(
                 tournament = tournament, 
@@ -186,18 +192,32 @@ def hosting_tournament_round(request, uuid, round_num, *args, **kwargs):
             )
             matches.append(match)
     rounds.start_round(tournament=tournament)
-    rn = rounds.step_round(tournament=tournament)
-    drn = rn + 1
-
-    context = {
-        'tournament': tournament,
-        'hosting': hosting,
-        'matches': matches,
-        'round_num': rn,
-        'display_round_num': drn,
-    }
     # In the URL, the link requires the tournament uuid and the round_num
-    return render(request, 'tournaments/tournament_round.html', context)
+    return render(request, 'tournaments/tournament_round.html', {
+        'tournament': tournament,
+        'matches': matches,
+        'round_num': round_num,
+    })
+
+
+@admin_required
+def match_result(request, uuid, round_num, p1_uuid, *args, **kwargs):
+    success = False
+    if request.method == "POST":
+        tournament = get_object_or_404(Tournament, uuid=uuid)
+        result = request.POST.get('result')
+        if result in ['WIN', 'DRAW', 'LOSS']:    
+            p2_result = rounds.calculate_match_results(t=tournament, rn=round_num, result=result, p1_uuid=p1_uuid)
+            success = True
+    else:
+        result = 'NONE'
+        p2_result = result
+    return JsonResponse({
+        'result': result,
+        'p2_result': p2_result,
+        'success': success,
+    })
+
 
 @admin_required
 def end_tournament_round(request, uuid, round_num, *args, **kwargs):
@@ -211,17 +231,18 @@ def end_tournament_round(request, uuid, round_num, *args, **kwargs):
     :param kwargs: Description
     '''
     tournament = get_object_or_404(Tournament, uuid=uuid)
-    hosting= HostTournament.objects.get(tournament=tournament)
+    hosting = get_object_or_404(HostTournament, tournament=tournament)
     matches = Match.objects.filter(tournament=tournament, round_num = round_num)
-    round_num += 1 
-    hosting.current_round = round_num
-    hosting.save()
+
     rounds.end_round(tournament=tournament)
+
+    next_round_num = int(hosting.current_round) + 1
 
     context = {
         'tournament': tournament,
         'matches': matches,
         'round_num': round_num,
+        'next_round': next_round_num,
     }
     return render(request, 'tournaments/round_end.html', context)
 
@@ -242,11 +263,9 @@ def tournament_settings(request, uuid, *args, **kwargs):
 def tournament_end(request, uuid, *args, **kwargs):
 
     tournament = get_object_or_404(Tournament, uuid=uuid)
-    tournament.is_finished = True
 
     context = {
         'tournament': tournament
     }
 
     return render(request, 'tournaments/tournament_end.html', context)
-# Tournament Admin - After Hosting
