@@ -1,7 +1,8 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.db.models import F
 from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from functools import wraps
-from .models import Tournament, JoinTournament, Participant, HostTournament, Match
+from .models import Tournament, JoinTournament, Participant, HostTournament, Match, Round
 from .forms import CreateTournament, TournamentSettings
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
@@ -64,16 +65,6 @@ def tournament_details(request, uuid):
     return render(request, 'tournaments/detail.html', {"tournament": tournament})
 
 @login_required
-def join_tournament(request, uuid):
-    tournament = get_object_or_404(Tournament, uuid=uuid)
-    if request.method == 'POST':
-        JoinTournament.objects.get_or_create(
-            user=request.user,
-            tournament=tournament
-        )
-    return redirect('dashboard')
-
-@login_required
 def create_tournament(request):
     if request.method == "POST":
         form = CreateTournament(request.POST)
@@ -85,8 +76,8 @@ def create_tournament(request):
                     status=form.cleaned_data['status'],
                     type=form.cleaned_data['type'], 
                     club=form.cleaned_data['club'],
-                    rounds=form.cleaned_data['rounds'],
-                    lead_organizer=user
+                    rounds = rounds.generate_total_number_of_rounds(tournament=tournament),
+                    lead_organizer=user,
                 )
                 tournament.save()
                 join = JoinTournament(
@@ -128,7 +119,7 @@ def main_tournament_page(request, *args, **kwargs):
 def tournament_admin(request, *args, **kwargs):
     tournament = request.tournament
     signed_in = JoinTournament.objects.filter(tournament=tournament, role = 'PARTICIPANT')
-    others = Participant.objects.filter(tournament=tournament)
+    others = Participant.objects.filter(tournament=tournament).exclude(name='BYE')
     total = int(len(signed_in) + len(others))
     return render(request, 'tournaments/tournament_admin.html', {'tournament': tournament, 'total': total})
 
@@ -149,11 +140,14 @@ def all_participants_in_tournament(request, *args, **kwargs):
 def start_tournament(request, *args, **kwargs):
     tournament = request.tournament
     number_of_rounds = int(tournament.rounds)
-    number_of_participants = len(Participant.objects.filter(tournament=tournament))
+    number_of_participants = len(Participant.objects.filter(tournament=tournament).exclude(name='BYE'))
+    if number_of_participants % 2 == 0 and Participant.objects.filter(name="BYE").exists():
+        Participant.objects.get(name='BYE').delete()
     hosting, created = HostTournament.objects.get_or_create(tournament=tournament)
     round_num = hosting.current_round
     hosting.total_rounds = number_of_rounds
     hosting.save()
+
     return render(request, 'tournaments/tournament_confirmation.html', {
         'tournament': tournament, 
         'number_of_rounds': number_of_rounds, 
@@ -176,47 +170,42 @@ def hosting_tournament_round(request, uuid, round_num, *args, **kwargs):
     hosting= get_object_or_404(HostTournament, tournament=tournament)
     hosting.current_round = round_num
     hosting.save()
-    matches = []
-    m = Match.objects.filter(tournament=tournament, round_num=round_num)
-    if m.exists():
-        for ma in m:
-            matches.append(ma)
-    else:
+    tournament_round, created = Round.objects.get_or_create(tournament=tournament, round_num=hosting.current_round)
+    print(created)
+    if created or tournament_round.matches.count() == 0:
         pairs = rounds.generate_pairings(tournament=tournament)
-        for pair in pairs:
-            match, created = Match.objects.get_or_create(
-                tournament = tournament, 
-                round_num = round_num,
-                player_1 = pair[0],
-                player_2 = pair[1],
-            )
-            matches.append(match)
+        for idx, pair in enumerate(pairs, start=1):
+            Match.objects.get_or_create(
+                    tournament = tournament, 
+                    round_num = round_num,
+                    player_1 = pair[0],
+                    player_2 = pair[1],
+                    round_model = tournament_round,
+                    ordering = idx  
+                )
+        tournament_round.save()
     rounds.start_round(tournament=tournament)
-    # In the URL, the link requires the tournament uuid and the round_num
-    return render(request, 'tournaments/tournament_round.html', {
+
+    print(f'Round ID: {tournament_round.id}')
+    print(f'Match count: {tournament_round.matches.count()}')
+    print(f'Matches exist: {tournament_round.matches.exists()}')
+    for i in range(1, round_num + 1):
+        print(i)
+    for ma in Match.objects.filter(tournament=tournament, round_num=round_num):
+        if ma.isCompleted: 
+            print(f'+{ma.p1_points} points for {ma.player_1.name} -- +{ma.p2_points} points for {ma.player_2.name}. COMPLETED')
+        else: 
+            print(f'Match between {ma.player_1.name} and {ma.player_2.name}: INCOMPLETED')
+            
+
+    
+    context = {
         'tournament': tournament,
-        'matches': matches,
+        'round': tournament_round,
         'round_num': round_num,
-    })
-
-
-@admin_required
-def match_result(request, uuid, round_num, p1_uuid, *args, **kwargs):
-    success = False
-    if request.method == "POST":
-        tournament = get_object_or_404(Tournament, uuid=uuid)
-        result = request.POST.get('result')
-        if result in ['WIN', 'DRAW', 'LOSS']:    
-            p2_result = rounds.calculate_match_results(t=tournament, rn=round_num, result=result, p1_uuid=p1_uuid)
-            success = True
-    else:
-        result = 'NONE'
-        p2_result = result
-    return JsonResponse({
-        'result': result,
-        'p2_result': p2_result,
-        'success': success,
-    })
+    }
+    # In the URL, the link requires the tournament uuid and the round_num
+    return render(request, 'tournaments/tournament_round.html', context)
 
 
 @admin_required
@@ -232,9 +221,15 @@ def end_tournament_round(request, uuid, round_num, *args, **kwargs):
     '''
     tournament = get_object_or_404(Tournament, uuid=uuid)
     hosting = get_object_or_404(HostTournament, tournament=tournament)
+    participants = Participant.objects.filter(tournament=tournament).exclude(name='BYE').order_by('-points')
     matches = Match.objects.filter(tournament=tournament, round_num = round_num)
-
     rounds.end_round(tournament=tournament)
+    for p in participants:
+        total_points = rounds.derive_points(tournament=tournament, player=p)
+        p.points = total_points
+        p.save()
+    for ma in matches:
+        print(f'{ma.player_1.name}: {ma.player_1.points} points -- {ma.player_2.name}: {ma.player_2.points} points.')
 
     next_round_num = int(hosting.current_round) + 1
 
@@ -243,6 +238,7 @@ def end_tournament_round(request, uuid, round_num, *args, **kwargs):
         'matches': matches,
         'round_num': round_num,
         'next_round': next_round_num,
+        'participants': participants,
     }
     return render(request, 'tournaments/round_end.html', context)
 
@@ -263,9 +259,59 @@ def tournament_settings(request, uuid, *args, **kwargs):
 def tournament_end(request, uuid, *args, **kwargs):
 
     tournament = get_object_or_404(Tournament, uuid=uuid)
+    tournament.is_finished = True
+    tournament.save()
 
     context = {
         'tournament': tournament
     }
 
     return render(request, 'tournaments/tournament_end.html', context)
+
+#Action Views
+
+@login_required
+def join_tournament(request, uuid):
+    tournament = get_object_or_404(Tournament, uuid=uuid)
+    if request.method == 'POST':
+        JoinTournament.objects.get_or_create(
+            user=request.user,
+            tournament=tournament
+        )
+    return redirect('dashboard')
+
+@admin_required
+def match_result(request, uuid, round_num, p1_uuid, *args, **kwargs):
+    success = False
+    p2_result = 'NONE'
+    player_1 = get_object_or_404(Participant, uuid=p1_uuid)
+    if request.method == "POST":
+        tournament = get_object_or_404(Tournament, uuid=uuid)
+        match_model = get_object_or_404(Match, tournament=tournament, round_num=round_num, player_1 = player_1)
+        result = request.POST.get('result')
+        if result in ['WIN', 'DRAW', 'LOSS',]: 
+            print(result)
+            p1_result, p2_result = rounds.calculate_match_results(result=result, match_model=match_model)
+            success = True
+            match_model.p1_result = p1_result
+            match_model.p2_result = p2_result
+            match_model.isCompleted = True
+            match_model.save()
+            match_model.refresh_from_db()
+
+            print(f'Match {match_model.ordering}: {match_model.player_1.name} {match_model.p1_result} - {match_model.player_2.name} {match_model.p2_result}') 
+            print(f'+{match_model.p1_points} points for {match_model.player_1.name} -- +{match_model.p2_points} points for {match_model.player_2.name}')
+            print(match_model.isCompleted)
+            
+        else:
+            print('result not valid')
+            result = 'NONE'
+            p2_result = result
+    return JsonResponse({
+        'round_num': round_num,
+        'player_1': player_1.name,
+        'player_2': match_model.player_2.name,
+        'result': result,
+        'p2_result': p2_result,
+        'success': success,
+    })

@@ -1,5 +1,5 @@
 {% load static %}
-<!DOCTYPE html>
+<DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -9,16 +9,23 @@
 </head>
 <body>
     <h1>{{ tournament.name }} Round {{ round_num }}/{{ tournament.rounds }}</h1>
-    {% for match in matches %}
-    <div class="pairing-wrapper">
-        <form class="pairing-form" method="post" action="{% url 'tournaments:match_result' tournament.uuid round_num match.player_1.uuid %}">
+    {% for match in round.matches.all %}
+    <div class="pairing-wrapper" id="m{{match.round_num}}_{{match.player_1.name}}_vs_{{match.player_2.name}}">
+        <p class="pairing">Match {{match.ordering}}</p>
+        <form class="pairing-form pairing" method="post" action="{% url 'tournaments:match_result' tournament.uuid round_num match.player_1.uuid %}">
             {% csrf_token %}
             <button type="button" class="p1_result" name="result" data-value="WIN">W</button>
             <button type="button" class="p1_result" name="result" data-value="DRAW">D</button>
-            <button type="button" class="p1_result" name="result" daat-value="LOSS">L</button> 
+            <button type="button" class="p1_result" name="result" data-value="LOSS">L</button> 
         </form>
-        <p class="pairing">{{ match.player_1.name }} vs {{ match.player_2.name }}</p>
-        <div class="no_dihsplay p2_result"></div>
+        <p class="pairing"><span id="m{{match.round_num}}_{{match.player_1.name}}">{{ match.player_1.name }}</span> vs <span id="m{{match.round_num}}_{{match.player_2.name}}">{{ match.player_2.name }}</span></p>
+        <div class="matchResult" id="m{{match.round_num}}_{{match.player_1.name}}_vs_{{match.player_2.name}}_result">
+            {% if match.isCompleted %}
+                Result: {{ match.player_1.name }}: {{ match.p1_result }} -- {{ match.player_2.name }}: {{ match.p2_result }}
+            {% else %}
+                Result: 
+            {% endif %}
+        </div>
     </div>
     
     {% endfor %}

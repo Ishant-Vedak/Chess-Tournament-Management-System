@@ -1,6 +1,6 @@
 from django.test import TestCase
 from users.models import User
-from tournaments.models import Tournament, Participant, HostTournament
+from tournaments.models import Tournament, Participant, HostTournament, Match,Round
 from tournaments.services import participants, state, rounds
 from tournaments.services.state import InvalidState
 import csv
@@ -84,3 +84,16 @@ class SecondHostingTestCase(TestCase):
         total_participants = Participant.objects.filter(tournament=tournament)
         self.assertEqual(len(total_participants), 8)
         self.assertEqual(len(pairs), 4)
+
+        r1 = Round.objects.create(tournament=tournament, round_num = 1)
+        for pair in pairs:
+            Match.objects.create(
+                tournament=tournament,
+                round_model = r1,
+                round_num = 1,
+                player_1 = pair[0],
+                player_2 = pair[1],
+
+            )
+            ping = rounds.derive_points(tournament=tournament, player=pair[0])
+            self.assertEqual(ping, 0)

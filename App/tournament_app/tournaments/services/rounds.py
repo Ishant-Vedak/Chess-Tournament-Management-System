@@ -3,6 +3,10 @@ from users.models import User
 from tournaments.services.state import InvalidState
 import random, math
 from django.shortcuts import get_object_or_404
+from decimal import Decimal
+from django.db.models import F
+from django.db import transaction
+from django.db.models import Sum
 
 def add_user_as_participant(user: User, tournament: Tournament):
     '''
@@ -51,6 +55,8 @@ def generate_pairings(tournament: Tournament):
         )
         bye.save()
 
+    
+
     participants = Participant.objects.filter(tournament=tournament)
     participants_sorted = sorted(participants, key=lambda p:p.random_seed)
 
@@ -93,7 +99,7 @@ def generate_total_number_of_rounds(tournament: Tournament):
     else:
          raise InvalidState("Tournament does not have correct format.")
 
-    # Double Elim is for later.
+    # Double Elim is for later. Double elim is when a player needs to lose twice to get out.
 
     return num_of_rounds
 
@@ -101,7 +107,7 @@ def generate_total_number_of_rounds(tournament: Tournament):
 def start_round(tournament: Tournament):
     '''
     Starts a round for a tournament.
-    Returns nothing.
+    Returns True.
     
     :param tournament: The tournament for which a round is starting.
     :type tournament: Tournament
@@ -114,12 +120,14 @@ def start_round(tournament: Tournament):
     hosting.round_is_active = True
     hosting.save()
 
+    return True
+
 
 
 def end_round(tournament: Tournament):
     '''
     End a round in a tournament.
-    Returns nothing.
+    Returns False.
     
     :param tournament: The tournament for which a round is ending.
     :type tournament: Tournament
@@ -132,6 +140,7 @@ def end_round(tournament: Tournament):
     
     hosting.round_is_active = False
     hosting.save()
+    return False
 
 def step_round(tournament: Tournament):
     '''
@@ -153,31 +162,42 @@ def step_round(tournament: Tournament):
 
     
 
-def calculate_match_results(t: Tournament, rn: int, result: str, p1_uuid: str):
+def calculate_match_results(result: str, match_model=Match):
     '''
     Calculates the match results, based on the result of the first player. 
-    
-    :param t: Tournament in which match is taking place. 
-    :type t: Tournament
-    :param rn: Round Number
-    :type rn: int
-    :param result: Result of Match
-    :type result: str
-    :param p1_uuid: UUID of P1.
-    :type p1_uuid: str
-    '''
+    Returns both results as strings.
 
-    p1 = Participant.objects.get(uuid=p1_uuid)
-    match = get_object_or_404(Match, tournament=t, round_num=rn, player_1=p1)
-    match.p1_result = result
+    '''
     if result == 'WIN': 
         p2_result = 'LOSS'
+        match_model.p1_points = Decimal('1')
+        match_model.p2_points = Decimal('0')
     elif result == 'DRAW':
         p2_result = 'DRAW'
-    else:
+        match_model.p1_points = Decimal('0.5')
+        match_model.p2_points = Decimal('0.5')
+    elif result == 'LOSS':
         p2_result = 'WIN'
-    match.p2_result = p2_result
-    match.save()
+        match_model.p2_points = Decimal('1')
+        match_model.p1_points = Decimal('0')
+    else:
+        p2_result = 'NONE'
 
-    return p2_result
+    match_model.save()
+    match_model.refresh_from_db()
 
+    return result, p2_result
+
+def derive_points(tournament: Tournament, player: Participant):
+    '''
+    Docstring for derive_points
+    
+    :param match: Description
+    :type match: Match
+    '''
+
+
+    m1 = Match.objects.filter(tournament=tournament, player_1 = player).aggregate(Sum('p1_points', default=0))['p1_points__sum']
+    m2 = Match.objects.filter(tournament=tournament, player_2 = player).aggregate(Sum('p2_points', default=0))['p2_points__sum']
+
+    return m1 + m2

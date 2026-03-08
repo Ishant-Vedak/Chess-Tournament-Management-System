@@ -14,9 +14,20 @@
     border-width: 1px;
     border-style: solid;
     cursor: pointer;
+    margin-left: 5px;
+    margin-right: 5px;
 }
 
 .pairing{
     display: inline-block;
     width: fit-content;
+}
+
+.p2_result{
+    display: inline;
+    border-radius: 10%;
+    border-width: 1px;
+    border-style: solid;
+    border-color: red;
+    width: auto;
 }

@@ -9,8 +9,14 @@
     <p> End of {{ round_num }}</p>
 
     {% for match in matches %}
-    <p>{{ match.player_1.name }}: {{ match.player_1.points }} - {{ match.player_2.name }}: {{ match.player_2.points }}</p>
+    <p>{{ match.player_1.name }}: {{ match.p1_points }} - {{ match.player_2.name }}: {{ match.p2_points }}</p>
     {% endfor %}
+
+    <p> Live Rankings </p>
+    {% for p in participants %}
+    <p>{{ p.name }} - {{ p.points }}</p>
+    {% endfor %}
+
     {% if round_num >= tournament.rounds %}
     <a href="{% url 'tournaments:tournament_end' uuid=tournament.uuid %}"><button>End Tournament</button></a>
     {% else %}

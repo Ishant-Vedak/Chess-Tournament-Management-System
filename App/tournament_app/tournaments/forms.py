@@ -10,4 +10,4 @@ class CreateTournament(forms.ModelForm):
 class TournamentSettings(forms.ModelForm):
     class Meta:
         model = Tournament
-        fields = ['name', 'creation_date', 'status', 'type', 'format', 'club'] 
+        fields = ['name', 'creation_date', 'status', 'type', 'format', 'club', 'rounds'] 

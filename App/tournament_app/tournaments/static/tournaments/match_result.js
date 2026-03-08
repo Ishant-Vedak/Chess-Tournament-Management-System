@@ -23,11 +23,16 @@ document.querySelectorAll('.p1_result').forEach(button => {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+            
                 console.log('Match updated successfully.', data)
-                const p2Display = form.querySelector('.p2_result')
-
-                p2Display.classList.remove('no_dihsplay')
-                p2Display.textContent = `${data.p2_result}`
+                const p2DisplayID = `m${data.round_num}_${data.player_1}_vs_${data.player_2}_result`
+                const p2Display = document.getElementById(p2DisplayID)
+                const player_1 = document.getElementById(`m${data.round_num}_${data.player_1}`).innerText
+                const player_2 = document.getElementById(`m${data.round_num}_${data.player_2}`).innerText 
+                p2Display.textContent = `Result: ${player_1}: ${data.result} -- ${player_2}: ${data.p2_result}`
+                console.log(`${player_1}: ${data.result} -- ${player_2}: ${data.p2_result}`)
+                
+            
             } else {
                 console.error('Failed to update match.', data)
             }

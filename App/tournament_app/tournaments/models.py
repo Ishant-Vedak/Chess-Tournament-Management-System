@@ -81,6 +81,7 @@ class JoinTournament(models.Model):
         ADMIN: "Admin",
         PARTICIPANT: "Participant",
     }
+    id = models.AutoField(primary_key=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="joined_tournaments")
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name="people_joined")
     role = models.CharField(max_length=12, choices=Roles, default=PARTICIPANT)
@@ -138,6 +139,38 @@ class HostTournament(models.Model):
 
     def __str__(self):
         return f'Hosting model for {self.tournament}.'
+    
+
+class Round(models.Model):
+    
+    CREATED = 'CREATED'
+    ONGOING = "ONGOING"
+    FINISHED = 'FINISHED'
+    Round_Status = {
+        CREATED: 'Created',
+        ONGOING: "Ongoing",
+        FINISHED: 'Finished',
+    }
+
+    id = models.AutoField(primary_key=True)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    round_num = models.IntegerField(default=1)
+    tournament = models.ForeignKey(
+        Tournament, 
+        on_delete=models.CASCADE,
+    )
+    round_status = models.CharField(max_length=8, choices=Round_Status,default=CREATED)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['tournament', 'round_num',],
+                name= 'unique_tournament_round'
+            )
+        ]
+
+    def __str__(self):
+        return f'Round {self.round_num} for {self.tournament}.'
 
 class Match(models.Model):
     '''
@@ -147,17 +180,39 @@ class Match(models.Model):
     WIN = "WIN"
     DRAW = "DRAW"
     LOSS = "LOSS"
+    NONE = "NONE"
     Results = {
        WIN: 'Win',
        DRAW: 'Draw',
        LOSS: 'Loss',
+       NONE: 'None',
     }
 
     id = models.AutoField(primary_key=True)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
-    round_num = models.IntegerField(default=0)
+    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE) #needed
+    round_model = models.ForeignKey(Round, on_delete=models.CASCADE, related_name='matches', null=True) #Make sure every match has this.
+    round_num = models.IntegerField(default=0) #needed
     player_1 = models.ForeignKey(Participant, related_name='p1', on_delete=models.CASCADE)
     player_2 = models.ForeignKey(Participant, related_name='p2', on_delete=models.CASCADE)
-    p1_result = models.CharField(max_length=4, choices=Results, default=DRAW)
-    p2_result = models.CharField(max_length=4, choices=Results, default=DRAW)
+    p1_result = models.CharField(max_length=4, choices=Results, default=NONE)
+    p2_result = models.CharField(max_length=4, choices=Results, default=NONE)
+    p1_points = models.DecimalField(default=0, decimal_places=1, max_digits=3)
+    p2_points = models.DecimalField(default=0, decimal_places=1, max_digits=3)
+    isCompleted = models.BooleanField(default=False)
+    ordering = models.IntegerField(default=0)
+
+    class Meta: 
+        constraints = [
+            models.UniqueConstraint(
+                fields=['tournament', 'round_num', 'player_1', 'player_2'],
+                name= 'unique_round_pairing'
+            )
+        ]
+        ordering = ['ordering']
+
+    def __str__(self):
+        return f'Match for round {self.round_num} in {self.tournament}: {self.player_1} vs {self.player_2}.'
+
+    def results(self):
+        return f'Result: {self.player_1} - {self.p1_result}, {self.player_2} - {self.p2_result}'
