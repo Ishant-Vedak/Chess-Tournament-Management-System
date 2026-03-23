@@ -107,12 +107,16 @@ class Participant(models.Model):
     id = models.AutoField(primary_key=True)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     name = models.CharField(max_length=150)
+    second_name = models.CharField(max_length=150, null=True, blank=True)
     random_seed = models.IntegerField(null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
-    rating = models.IntegerField(blank=True, null=True)
+    cfc_rating = models.IntegerField(blank=True, null=True)
+    fide_rating = models.IntegerField(blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
-    points = models.DecimalField(default=0, decimal_places=1, max_digits=3)
+    color_history = models.CharField(max_length=30, blank=True, null=True)
+    color_balance = models.IntegerField(default=0, null=True, blank=True)
+    total_points = models.DecimalField(default=0, decimal_places=1, max_digits=3)
 
     class Meta:
         constraints = [

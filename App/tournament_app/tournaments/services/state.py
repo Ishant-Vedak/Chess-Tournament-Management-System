@@ -19,8 +19,11 @@ def close_registration(tournament: Tournament):
     '''
     Closes registration if its open, otherwise raises an error.
     '''
-    if tournament.status != "REGISTRATION_OPEN":
+    if tournament.status == 'REGISTRATION_CLOSED':
+        pass
+    elif tournament.status != "REGISTRATION_OPEN":
         raise InvalidState("Registration is closed.")
+    
     tournament.status = "REGISTRATION_CLOSED"
     tournament.save()
     return tournament

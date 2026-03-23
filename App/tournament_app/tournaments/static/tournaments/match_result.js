@@ -31,7 +31,6 @@ document.querySelectorAll('.p1_result').forEach(button => {
                 const player_2 = document.getElementById(`m${data.round_num}_${data.player_2}`).innerText 
                 p2Display.textContent = `Result: ${player_1}: ${data.result} -- ${player_2}: ${data.p2_result}`
                 console.log(`${player_1}: ${data.result} -- ${player_2}: ${data.p2_result}`)
-                
             
             } else {
                 console.error('Failed to update match.', data)

@@ -6,7 +6,20 @@
     <title>{{ tournament.name }}</title>
 </head>
 <body>
-    <p> This is the end of {{ tournament.name }}</p>
+    <p> {{ tournament.name }} has Ended</p>
+    {% if multiple_winners %}
+    <div>The tournament is tied between the following participants:</div>
+    {% for win in t_winner %}
+    <div>{{win.name}}</div>
+    {% endfor %}
+    {% else %}
+    <div>Winner: {{ t_winner }}</div>
+    {% endif %}
+    <div>Leaderboard:</div>
+    {% for p in participants %}
+    <div>{{p.name}} - {{p.points}}</div>
+    {% endfor %}
+
     <a href="{% url 'dashboard' %}"><button>Go Back to Start</button></a>
 </body>
 </html>

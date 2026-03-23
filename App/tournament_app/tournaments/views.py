@@ -1,12 +1,14 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.db.models import F
 from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from functools import wraps
 from .models import Tournament, JoinTournament, Participant, HostTournament, Match, Round
 from .forms import CreateTournament, TournamentSettings
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from .services import rounds
+from .services import rounds, participants, state
+from django.db.models import Max
+import io
+import csv
 
 # Create your views here.
 
@@ -147,6 +149,7 @@ def start_tournament(request, *args, **kwargs):
     round_num = hosting.current_round
     hosting.total_rounds = number_of_rounds
     hosting.save()
+    state.close_registration(tournament=tournament)
 
     return render(request, 'tournaments/tournament_confirmation.html', {
         'tournament': tournament, 
@@ -225,9 +228,12 @@ def end_tournament_round(request, uuid, round_num, *args, **kwargs):
     matches = Match.objects.filter(tournament=tournament, round_num = round_num)
     rounds.end_round(tournament=tournament)
     for p in participants:
+        p.refresh_from_db()
         total_points = rounds.derive_points(tournament=tournament, player=p)
         p.points = total_points
         p.save()
+        p.refresh_from_db()
+        
     for ma in matches:
         print(f'{ma.player_1.name}: {ma.player_1.points} points -- {ma.player_2.name}: {ma.player_2.points} points.')
 
@@ -262,8 +268,18 @@ def tournament_end(request, uuid, *args, **kwargs):
     tournament.is_finished = True
     tournament.save()
 
+    all_participants = Participant.objects.filter(tournament=tournament).exclude(name='BYE').order_by('-points')
+    multiple_winners = False
+    winning_score = all_participants.aggregate(Max('points'))['points__max']
+    top_participant = all_participants.filter(points=winning_score)
+    print(top_participant)
+    if len(top_participant) >1:
+        multiple_winners = True
     context = {
-        'tournament': tournament
+        'tournament': tournament,
+        'participants': all_participants, 
+        't_winner': top_participant,
+        'multiple_winners': multiple_winners,
     }
 
     return render(request, 'tournaments/tournament_end.html', context)
@@ -315,3 +331,29 @@ def match_result(request, uuid, round_num, p1_uuid, *args, **kwargs):
         'p2_result': p2_result,
         'success': success,
     })
+
+
+def upload_csv(request, uuid):
+    tournament = get_object_or_404(Tournament, uuid=uuid)
+    if request.method == 'POST':
+        csv_file = request.FILES.get('csv_file')
+        if not csv_file:
+            print('bad')
+
+        else:
+            print('good')
+            imports, errors = participants.import_participants_from_csv(tournament=tournament, file=csv_file)
+            print(imports)
+            print(errors)
+        for p in Participant.objects.filter(tournament=tournament):
+            print(p.name, p.second_name, p.cfc_rating, p.fide_rating, p.email)
+
+
+            
+    return JsonResponse({
+        'success': False,
+        'message': 'No file received.'
+    })
+
+def add_participant_manually(request, uuid):
+    ...

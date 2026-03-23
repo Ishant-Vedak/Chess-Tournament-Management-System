@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <link rel="stylesheet" href="{% static 'tournaments/round_layout.css' %}">
     <link rel="stylesheet" href="{% static 'tournaments/styles.css' %}">
-    <title>{{ tournament.name }}</title>
+    <title>Round {{ round_num }}/{{ tournament.rounds }} - {{ tournament.name }}</title>
 </head>
 <body>
     <h1>{{ tournament.name }} Round {{ round_num }}/{{ tournament.rounds }}</h1>
@@ -22,7 +22,7 @@
         <div class="matchResult" id="m{{match.round_num}}_{{match.player_1.name}}_vs_{{match.player_2.name}}_result">
             {% if match.isCompleted %}
                 Result: {{ match.player_1.name }}: {{ match.p1_result }} -- {{ match.player_2.name }}: {{ match.p2_result }}
-            {% else %}
+            {% else %}  
                 Result: 
             {% endif %}
         </div>

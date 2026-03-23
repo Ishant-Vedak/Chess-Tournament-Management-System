@@ -21,6 +21,10 @@ urlpatterns = [
     path('<uuid:uuid>/', views.main_tournament_page, name='main_tournament_page'),
     #Page showing all participants.
     path('<uuid:uuid>/all_participants/', views.all_participants_in_tournament, name='all_participants'),
+    #Upload list of participants using CSV file.
+    path('<uuid:uuid>/upload_csv/', views.upload_csv, name='upload_csv'),
+    #Add a participant manually.
+    path('<uuid:uuid>/manual_entry/', views.add_participant_manually, name='manual_entry'),
     #Confirmation Page before starting Tournament.
     path('<uuid:uuid>/start/', views.start_tournament, name='start_tournament'),
 

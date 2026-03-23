@@ -24,6 +24,22 @@ Ending Tournament:
 4. delete it in 14 days (seems like good amount of time). OR save every tournament until it becomes an issue.
 
 
-## Current Goal:
+## Current Issues:
 
-Allow organizer to host tournament.
+1. Frontend.
+
+2. Bulk Import of Participants through CSV. (Google forms has an option to export data as a .csv file)
+
+3.  Managing Color Balance for players. (In a tournament, a player alternates between playing as white and black, so I have to implement a system to do this.)
+
+
+
+## Ongoing Solutions:
+
+1. For Managing Color Balance, I am putting 2 fields in the Participant model: color_history and color_balance. 
+    - Color history will be a string show the order in which a player has played the colors. For example, 'WBW' will show that the player played White, then Black, and White. 
+    - Color balance will be an integer value, starting a 0. If the player plays White, then it increases by 1, and decreases by 1 if the players plays Black. It cannot exceed +2 or -2.
+
+
+
+

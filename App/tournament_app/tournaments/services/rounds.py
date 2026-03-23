@@ -39,10 +39,7 @@ def generate_pairings(tournament: Tournament):
     :param tournament: Tournament with the players for the pairings.
     :type tournament: Tournament
     '''
-    joins = JoinTournament.objects.filter(tournament=tournament)
     participants = Participant.objects.filter(tournament=tournament)
-    for j in joins:
-            add_user_as_participant(user=j.user, tournament=j.tournament)
     for p in participants:
         p.random_seed = random.randint(1, 1_000_000)
         p.save()
