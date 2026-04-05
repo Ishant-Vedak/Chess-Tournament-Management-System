@@ -33,7 +33,34 @@ def add_participant(
     t = tournament
     if t.status != "REGISTRATION_OPEN":
         raise InvalidState("Registration is not open, Participants cannot be added.")
-    new, created = Participant.objects.get_or_create(name=name, second_name=second_name, tournament=t, email=email, cfc_rating=cfc_rating, fide_rating=fide_rating)
+    new, created = Participant.objects.get_or_create(
+        name=name, 
+        second_name=second_name, 
+        tournament=t, email=email, 
+        cfc_rating=cfc_rating, 
+        fide_rating=fide_rating
+        )
+
+def new_headers(initial_fieldnames: list):
+    given_headers = initial_fieldnames[:]
+    first_name_found = False
+    for i, header in enumerate(given_headers):
+        lowered = str(header).lower()
+        if 'name' in lowered:
+            if 'middle' in lowered or 'user' in lowered:
+                continue
+            if not first_name_found:
+                given_headers[i] = 'first_name'
+            else: 
+                given_headers[i] = 'last_name'
+        elif 'elo' in lowered or 'fide' in lowered:
+            given_headers[i] = 'fide_rating'
+        elif 'cfc' in lowered:
+            given_headers[i] = 'cfc_rating'
+    return given_headers
+
+
+    
 
 def import_participants_from_csv(tournament: Tournament, file):
     '''
@@ -49,40 +76,21 @@ def import_participants_from_csv(tournament: Tournament, file):
     errors = []
     import_count = 0
 
-    PARTIAL_NAME_IDENTIFIERS = {
-        "cfc_rating": ["cfc", "rating"],
-        "fide_rating": ["fide", "rating"],
-        "name": ['name', 'first'],
-        "last_name": ['last', 'name'],
-        "email": ["email"]
-    }
-
-    def find_key(given_header: str):
-        cleaned = given_header.lower().strip()
-        for official_name, keywords in PARTIAL_NAME_IDENTIFIERS.items():
-            if all(word in cleaned for word in keywords):
-                return official_name
-            if cleaned == 'elo': 
-                return 'fide_rating'
-        return cleaned.strip()
     data = file.read().decode('utf-8')
     reader = csv.DictReader(io.StringIO(data), skipinitialspace=True)
 
+    reader.fieldnames = new_headers(reader.fieldnames)
+    print(reader.fieldnames)
+
     for idx, row in enumerate(reader, start=1):
-        new_row = {}
-        for original_key, value in row.items():
-            clean_key = find_key(original_key)
-            clean_value = value.strip()
-            new_row[clean_key] = clean_value
         try:
             add_participant(
                 tournament=tournament, 
-                name=new_row['name'], 
-                second_name = new_row['last_name'],
-                email=new_row['email'], 
-                cfc_rating=int(new_row['cfc_rating']), 
-                fide_rating=int(new_row['fide_rating']),
-
+                name=row.get('first_name'),
+                second_name=row.get('last_name'),
+                email=row.get('email'),
+                cfc_rating=row.get('cfc_rating'),
+                fide_rating=row.get('fide_rating')
             )
             import_count += 1
 
@@ -90,38 +98,3 @@ def import_participants_from_csv(tournament: Tournament, file):
             errors.append(f'Row {idx}: {str(e)}')
 
     return import_count, errors
-
-    # headers = [header.strip().lower() for header in reader.fieldnames]
-
-    # if not "name" in headers:
-    #     raise ValueError("CSV File is missing column 'name'. ")
-    
-    # aliases = {
-    #     'cfc': ['cfc rating', 'cfc_rating', 'cfc', 'national rating'],
-    #     'fide': ['fide rating', 'fide_rating', 'fide', 'elo']
-    # }
-
-    # for i, row in enumerate(reader, start=1):
-    #     name = row.get('name', '').lower().strip()
-    #     email = row.get('email', '').lower().strip() or None
-    #     cfc_rating = row.get('CFC rating', '').strip() or row.get('cfc_rating', '').strip() or None
-    #     fide_rating = row.get('FIDE rating', '').strip() or row.get('fide_rating', '').strip() or None
-
-    #     if not name: 
-    #         errors.append(f'Row {i}: Missing name')
-    #         continue
-
-    #     if cfc_rating is not None or fide_rating is not None:
-    #         try: 
-    #             cfc_rating = int(cfc_rating)
-    #             fide_rating = int(fide_rating)
-    #         except ValueError:
-    #             errors.append(f'Invalid Rating on Row {i}')
-    #             continue
-    #     try: 
-    #         add_participant(tournament=tournament, name=name, email=email, cfc_rating=cfc_rating, fide_rating=fide_rating)
-    #         import_count += 1 
-    #     except InvalidState as e:
-    #         errors.append(f'Row {i}: {str(e)}')
-            
-    # return import_count, errors

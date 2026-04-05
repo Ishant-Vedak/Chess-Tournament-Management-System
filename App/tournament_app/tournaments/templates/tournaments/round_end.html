@@ -14,7 +14,7 @@
 
     <p> Live Rankings </p>
     {% for p in participants %}
-    <p>{{ p.name }} - {{ p.points }}</p>
+    <p>{{ p.name }} - {{ p.total_points }}</p>
     {% endfor %}
 
     {% if round_num >= tournament.rounds %}

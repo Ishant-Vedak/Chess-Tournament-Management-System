@@ -1,10 +1,11 @@
 from django.test import TestCase
 from users.models import User
 from tournaments.models import Tournament, Participant
-from tournaments.services import participants, state
+from tournaments.services import participants, state, swiss
 from tournaments.services.state import InvalidState
 import csv
 import tempfile
+from django.db.utils import IntegrityError
 
 class ParticipantTestCase(TestCase):
     def setUp(self):
@@ -26,32 +27,31 @@ class ParticipantTestCase(TestCase):
     def testing_import_participants_with_correct_format(self):
         tournament=Tournament.objects.get(name='WigglyWobbly')
         state.open_registration(tournament)
-        with tempfile.NamedTemporaryFile(mode='w+', newline='', delete=True) as tmp:
-            fieldnames = ['name', 'email']
-            writer = csv.DictWriter(tmp, fieldnames=fieldnames)
-            writer.writeheader()
-            writer.writerow({'name': 'Dane', 'email': 'Sperling'})
-            writer.writerow({'name': 'Ryder', 'email': 'Hsu'})
-            writer.writerow({'name': 'Hudson', 'email': 'Regis'})
+        with tempfile.NamedTemporaryFile(mode='wb+', delete=True) as tmp:
+            content = "Name, Email, CFC Rating\n"
+            for i in range(1, 11):  
+                content += f"K{i},k{i}@gmail.com,{i}00\n"
+            tmp.write(content.encode('utf-8'))
             tmp.seek(0)
             import_count, errors = participants.import_participants_from_csv(
                 tournament=tournament,
                 file=tmp
             )
-            self.assertEqual(import_count, 3)
+            self.assertEqual(import_count, 10)
             self.assertEqual(errors, [])
+
+            pairs = swiss.generate_swiss_pairings(tournament=tournament)
+            self.assertEqual(len(pairs), 5)
     def testing_import_participants_with_wrong_format(self):
         tournament=Tournament.objects.get(name='WigglyWobbly')
         state.open_registration(tournament)
-        with tempfile.NamedTemporaryFile(mode='w+', newline='', delete=True) as tmp:
-            fieldnames = ['email', 'rating']
-            writer = csv.DictWriter(tmp, fieldnames=fieldnames)
-            writer.writeheader()
-            writer.writerow({'email': 'ds@gmail.com', 'rating': 2000})
-            writer.writerow({'email': 'rh@gmail.com', 'rating': 2001})
-            writer.writerow({'email': 'hr@gmail.com', 'rating': 9000})
+        with tempfile.NamedTemporaryFile(mode='wb+', delete=True) as tmp:
+            content = "Email,CFC Rating\n"
+            for i in range(1, 11):
+                content += f"k{i}@gmail.com,{i}00\n"
+            tmp.write(content.encode('utf-8'))
             tmp.seek(0)
-            with self.assertRaises(ValueError):
+            with self.assertRaises(IntegrityError):
                 participants.import_participants_from_csv(tournament=tournament, file=tmp)
 
             

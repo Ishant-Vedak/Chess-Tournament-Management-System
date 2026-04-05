@@ -32,8 +32,6 @@ Ending Tournament:
 
 3.  Managing Color Balance for players. (In a tournament, a player alternates between playing as white and black, so I have to implement a system to do this.)
 
-
-
 ## Ongoing Solutions:
 
 1. For Managing Color Balance, I am putting 2 fields in the Participant model: color_history and color_balance. 

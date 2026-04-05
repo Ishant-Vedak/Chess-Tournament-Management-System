@@ -13,11 +13,11 @@
     <div>{{win.name}}</div>
     {% endfor %}
     {% else %}
-    <div>Winner: {{ t_winner }}</div>
+    <div>Winner: {{ t_winner.first.name }}</div>
     {% endif %}
     <div>Leaderboard:</div>
     {% for p in participants %}
-    <div>{{p.name}} - {{p.points}}</div>
+    <div>{{p.name}} - {{p.total_points}}</div>
     {% endfor %}
 
     <a href="{% url 'dashboard' %}"><button>Go Back to Start</button></a>

@@ -11,13 +11,19 @@ class Command(shell.BaseCommand):
         name = options['name']
         try: 
             t = Tournament.objects.get(name=name)
+            HostTournament.objects.get(tournament=t).delete()
+            Round.objects.filter(tournament=t).delete()
+            Match.objects.filter(tournament=t).delete()
         except Tournament.DoesNotExist:
             raise NameError('Tournament Does Not Exist')
+        except HostTournament.DoesNotExist:
+            pass
 
-        HostTournament.objects.get(tournament=t).delete()
-        Round.objects.filter(tournament=t).delete()
+        
         for p in Participant.objects.filter(tournament=t).exclude(name='BYE'):
-            p.points = 0
+            p.total_points = 0
+            p.color_balance = 0
+            p.color_history = None
             p.save()
         t.is_finished = False
         t.save()

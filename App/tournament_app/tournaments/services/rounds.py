@@ -2,10 +2,7 @@ from tournaments.models import Tournament, Participant, JoinTournament, HostTour
 from users.models import User
 from tournaments.services.state import InvalidState
 import random, math
-from django.shortcuts import get_object_or_404
 from decimal import Decimal
-from django.db.models import F
-from django.db import transaction
 from django.db.models import Sum
 
 def add_user_as_participant(user: User, tournament: Tournament):
@@ -51,8 +48,6 @@ def generate_pairings(tournament: Tournament):
             random_seed = random.randint(1, 1_000_000)
         )
         bye.save()
-
-    
 
     participants = Participant.objects.filter(tournament=tournament)
     participants_sorted = sorted(participants, key=lambda p:p.random_seed)

@@ -146,6 +146,10 @@ class HostTournament(models.Model):
     
 
 class Round(models.Model):
+
+    # If I want to check if the tournament is still in progress,
+    # I can check the latest round using the HostTournament model's current round number,
+    # then find that round and check if the Round_status is ongoing.
     
     CREATED = 'CREATED'
     ONGOING = "ONGOING"
@@ -205,6 +209,7 @@ class Match(models.Model):
     p2_points = models.DecimalField(default=0, decimal_places=1, max_digits=3)
     isCompleted = models.BooleanField(default=False)
     ordering = models.IntegerField(default=0)
+    table_number = models.IntegerField(default=0)
 
     class Meta: 
         constraints = [

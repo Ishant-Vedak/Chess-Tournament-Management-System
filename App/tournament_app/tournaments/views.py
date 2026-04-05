@@ -5,7 +5,7 @@ from .models import Tournament, JoinTournament, Participant, HostTournament, Mat
 from .forms import CreateTournament, TournamentSettings
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from .services import rounds, participants, state
+from .services import rounds, participants, state, swiss
 from django.db.models import Max
 import io
 import csv
@@ -131,7 +131,7 @@ def all_participants_in_tournament(request, *args, **kwargs):
     signed_in = JoinTournament.objects.filter(tournament=tournament, role = 'PARTICIPANT')
     for si in signed_in:
         rounds.add_user_as_participant(user=si.user, tournament=tournament)
-    participants = Participant.objects.filter(tournament=tournament).exclude(name='BYE')
+    participants = Participant.objects.filter(tournament=tournament).exclude(name='BYE').order_by('name')
     return render(request, 'tournaments/all_participants.html', {
         'tournament': tournament, 
         'participants': participants,
@@ -144,7 +144,7 @@ def start_tournament(request, *args, **kwargs):
     number_of_rounds = int(tournament.rounds)
     number_of_participants = len(Participant.objects.filter(tournament=tournament).exclude(name='BYE'))
     if number_of_participants % 2 == 0 and Participant.objects.filter(name="BYE").exists():
-        Participant.objects.get(name='BYE').delete()
+        Participant.objects.get(name='BYE').delete() 
     hosting, created = HostTournament.objects.get_or_create(tournament=tournament)
     round_num = hosting.current_round
     hosting.total_rounds = number_of_rounds
@@ -170,23 +170,41 @@ def hosting_tournament_round(request, uuid, round_num, *args, **kwargs):
     :param kwargs: Description
     '''
     tournament = get_object_or_404(Tournament, uuid=uuid)
-    hosting= get_object_or_404(HostTournament, tournament=tournament)
+    hosting = get_object_or_404(HostTournament, tournament=tournament)
     hosting.current_round = round_num
     hosting.save()
     tournament_round, created = Round.objects.get_or_create(tournament=tournament, round_num=hosting.current_round)
     print(created)
     if created or tournament_round.matches.count() == 0:
-        pairs = rounds.generate_pairings(tournament=tournament)
-        for idx, pair in enumerate(pairs, start=1):
-            Match.objects.get_or_create(
-                    tournament = tournament, 
-                    round_num = round_num,
-                    player_1 = pair[0],
-                    player_2 = pair[1],
-                    round_model = tournament_round,
-                    ordering = idx  
-                )
-        tournament_round.save()
+        match tournament.format:
+            case 'SWISS':
+                pairs = swiss.generate_swiss_pairings(tournament=tournament)
+                for idx, pair in enumerate(pairs, start=1):
+                    Match.objects.get_or_create(
+                            tournament = tournament, 
+                            round_num = round_num,
+                            player_1 = pair[0],
+                            player_2 = pair[1],
+                            round_model = tournament_round,
+                            ordering = idx  
+                        )
+                tournament_round.save()
+
+            case _:
+                pairs = rounds.generate_pairings(tournament=tournament)
+                for idx, pair in enumerate(pairs, start=1):
+                    Match.objects.get_or_create(
+                            tournament = tournament, 
+                            round_num = round_num,
+                            player_1 = pair[0],
+                            player_2 = pair[1],
+                            round_model = tournament_round,
+                            ordering = idx  
+                        )
+                tournament_round.save()
+
+    
+
     rounds.start_round(tournament=tournament)
 
     print(f'Round ID: {tournament_round.id}')
@@ -199,8 +217,6 @@ def hosting_tournament_round(request, uuid, round_num, *args, **kwargs):
             print(f'+{ma.p1_points} points for {ma.player_1.name} -- +{ma.p2_points} points for {ma.player_2.name}. COMPLETED')
         else: 
             print(f'Match between {ma.player_1.name} and {ma.player_2.name}: INCOMPLETED')
-            
-
     
     context = {
         'tournament': tournament,
@@ -224,18 +240,17 @@ def end_tournament_round(request, uuid, round_num, *args, **kwargs):
     '''
     tournament = get_object_or_404(Tournament, uuid=uuid)
     hosting = get_object_or_404(HostTournament, tournament=tournament)
-    participants = Participant.objects.filter(tournament=tournament).exclude(name='BYE').order_by('-points')
     matches = Match.objects.filter(tournament=tournament, round_num = round_num)
     rounds.end_round(tournament=tournament)
-    for p in participants:
-        p.refresh_from_db()
+    for p in Participant.objects.filter(tournament=tournament).exclude(name='BYE'):
         total_points = rounds.derive_points(tournament=tournament, player=p)
-        p.points = total_points
+        p.total_points = total_points
         p.save()
         p.refresh_from_db()
         
+    participants = Participant.objects.filter(tournament=tournament).exclude(name='BYE').order_by('-total_points')
     for ma in matches:
-        print(f'{ma.player_1.name}: {ma.player_1.points} points -- {ma.player_2.name}: {ma.player_2.points} points.')
+        print(f'{ma.player_1.name}: {ma.player_1.total_points} points -- {ma.player_2.name}: {ma.player_2.total_points} points.')
 
     next_round_num = int(hosting.current_round) + 1
 
@@ -268,10 +283,10 @@ def tournament_end(request, uuid, *args, **kwargs):
     tournament.is_finished = True
     tournament.save()
 
-    all_participants = Participant.objects.filter(tournament=tournament).exclude(name='BYE').order_by('-points')
+    all_participants = Participant.objects.filter(tournament=tournament).exclude(name='BYE').order_by('-total_points')
     multiple_winners = False
-    winning_score = all_participants.aggregate(Max('points'))['points__max']
-    top_participant = all_participants.filter(points=winning_score)
+    winning_score = all_participants.aggregate(Max('total_points'))['total_points__max']
+    top_participant = all_participants.filter(total_points=winning_score)
     print(top_participant)
     if len(top_participant) >1:
         multiple_winners = True
