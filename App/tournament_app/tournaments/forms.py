@@ -5,18 +5,24 @@ class CreateTournament(forms.ModelForm):
     class Meta:
         model = Tournament
         fields = ("name", "status", "type", "club")
-
     
 class TournamentSettings(forms.ModelForm):
     class Meta:
         model = Tournament
         fields = ['name', 'creation_date', 'status', 'type', 'format', 'club', 'rounds'] 
 
-class ImportCSVFile(forms.Form):
-    ...
-
-
 class RegisterParticipant(forms.ModelForm):
     class Meta: 
-        mode = Participant
-        fields = ['name', 'rating']
+        model = Participant
+        fields = ['name', 'second_name', 'email', 'cfc_rating', 'fide_rating']
+        labels = {
+            'name': 'First Name',
+            'second_name': 'Last Name',
+            'email': 'Email',
+            'cfc_rating': 'CFC Rating',
+            'fide_rating': 'FIDE Rating',
+        }
+        widgets = {
+            'name': forms.TextInput(attrs={'placeholder': 'e.g. Magnus'}),
+            'second_name': forms.TextInput(attrs={'placeholder': 'e.g. Carlsen'}),
+        }

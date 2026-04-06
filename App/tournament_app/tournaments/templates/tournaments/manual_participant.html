@@ -1,0 +1,17 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add New Participant</title>
+</head>
+<body>
+    <h1>Add New Participant</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit"> Add New Participant</button>
+        <a href="{% url 'tournaments:all_participants' uuid=tournament.uuid %}"><button type="button">Back</button></a>
+    </form>
+</body>
+</html>

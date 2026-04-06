@@ -51,12 +51,15 @@ def new_headers(initial_fieldnames: list):
                 continue
             if not first_name_found:
                 given_headers[i] = 'first_name'
+                first_name_found =True
             else: 
                 given_headers[i] = 'last_name'
         elif 'elo' in lowered or 'fide' in lowered:
             given_headers[i] = 'fide_rating'
         elif 'cfc' in lowered:
             given_headers[i] = 'cfc_rating'
+        else:
+            given_headers[i] = lowered
     return given_headers
 
 

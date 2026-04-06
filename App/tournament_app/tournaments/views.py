@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from functools import wraps
 from .models import Tournament, JoinTournament, Participant, HostTournament, Match, Round
-from .forms import CreateTournament, TournamentSettings
+from .forms import CreateTournament, TournamentSettings, RegisterParticipant
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from .services import rounds, participants, state, swiss
@@ -299,6 +299,30 @@ def tournament_end(request, uuid, *args, **kwargs):
 
     return render(request, 'tournaments/tournament_end.html', context)
 
+def add_participant_manually(request, uuid):
+    tournament = get_object_or_404(Tournament, uuid=uuid)
+    if request.method == "POST":
+        form = RegisterParticipant(request.POST)
+        if form.is_valid():
+            
+            with transaction.atomic():
+                new_participant = Participant(
+                    name=form.cleaned_data['name'],
+                    second_name=form.cleaned_data['second_name'],
+                    email=form.cleaned_data['email'],
+                    cfc_rating=form.cleaned_data['cfc_rating'],
+                    fide_rating=form.cleaned_data['fide_rating'],
+                    tournament=tournament,
+                )
+                new_participant.save()
+            return redirect('tournaments:all_participants', tournament.uuid)
+    else:
+        form = RegisterParticipant()
+    return render(request, 'tournaments/manual_participant.html', {
+        'form': form,
+        'tournament': tournament
+        })
+    
 #Action Views
 
 @login_required
@@ -370,5 +394,3 @@ def upload_csv(request, uuid):
         'message': 'No file received.'
     })
 
-def add_participant_manually(request, uuid):
-    ...

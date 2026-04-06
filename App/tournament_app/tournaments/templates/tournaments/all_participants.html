@@ -21,7 +21,7 @@
     {% endif %}
     <h2>Add Participants</h2>
     <div class="add-participant-wrapper">
-        <button class="manual-entry">Manual Entry</button>
+        <a href="{% url 'tournaments:manual_entry' uuid=tournament.uuid %}"><button class="manual-entry" >Manually Add Participant</button></a>
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <div class="input-group" id="input-group" data-url="{% url 'tournaments:upload_csv' uuid=tournament.uuid %}">
