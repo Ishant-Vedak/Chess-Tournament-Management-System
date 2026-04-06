@@ -203,7 +203,22 @@ def hosting_tournament_round(request, uuid, round_num, *args, **kwargs):
                         )
                 tournament_round.save()
 
-    
+    if Participant.objects.filter(name='BYE').exists():
+        bye_player = Participant.objects.get(name='BYE')
+        if Match.objects.filter(round_num=round_num, round_model= tournament_round, player_1=bye_player).exists():
+            bye_match = Match.objects.get(player_1=bye_player,round_num=round_num, round_model=tournament_round)
+            bye_match.p2_points += 1
+            bye_match.p1_result = 'LOSS'
+            bye_match.p2_result = 'WIN'
+            bye_match.isCompleted = True
+            bye_match.save()
+        else:
+            bye_match = Match.objects.get(player_2=bye_player, round_num=round_num, round_model=tournament_round)
+            bye_match.p1_points += 1
+            bye_match.p2_result = 'LOSS'
+            bye_match.p1_result = 'WIN'
+            bye_match.isCompleted = True
+            bye_match.save()
 
     rounds.start_round(tournament=tournament)
 
