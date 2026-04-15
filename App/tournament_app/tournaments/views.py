@@ -5,7 +5,7 @@ from .models import Tournament, JoinTournament, Participant, HostTournament, Mat
 from .forms import CreateTournament, TournamentSettings, RegisterParticipant
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from .services import rounds, participants, state, swiss
+from .services import rounds, participants, state, swiss, round_robin, knockout
 from django.db.models import Max
 import io
 import csv
@@ -73,16 +73,16 @@ def create_tournament(request):
         if form.is_valid():
             user = request.user
             with transaction.atomic():
-                tournament = Tournament(
+                tournament = Tournament.objects.create(
                     name=form.cleaned_data['name'],
                     status=form.cleaned_data['status'],
                     type=form.cleaned_data['type'], 
                     club=form.cleaned_data['club'],
-                    rounds = rounds.generate_total_number_of_rounds(tournament=tournament),
                     lead_organizer=user,
                 )
+                tournament.rounds = rounds.generate_total_number_of_rounds(tournament=tournament)
                 tournament.save()
-                join = JoinTournament(
+                join = JoinTournament.objects.create(
                     user=user,
                     tournament=tournament,
                     role="ORGANIZER",
@@ -123,7 +123,31 @@ def tournament_admin(request, *args, **kwargs):
     signed_in = JoinTournament.objects.filter(tournament=tournament, role = 'PARTICIPANT')
     others = Participant.objects.filter(tournament=tournament).exclude(name='BYE')
     total = int(len(signed_in) + len(others))
-    return render(request, 'tournaments/tournament_admin.html', {'tournament': tournament, 'total': total})
+    if tournament.rounds == 0:
+        tournament.rounds = rounds.generate_total_number_of_rounds(tournament=tournament)
+        tournament.save()
+    
+    latest_round_num = 0
+    match tournament.status:
+        case 'REGISTRATION_OPEN':
+            tournament_status = 'Registration is Open.'
+        case 'REGISTRATION_CLOSED':
+            tournament_status = 'Registration is Closed.'
+        case 'ONGOING':
+            tournament_status = 'Tournament is Ongoing.'
+            latest_round = Round.objects.filter(tournament=tournament).last()
+            latest_round_num = latest_round.round_num
+        case 'CLOSED':
+            tournament_status = 'Tournament is Closed.'
+        case _:
+            tournament_status = 'None'
+
+    return render(request, 'tournaments/tournament_admin.html', {
+        'tournament': tournament, 
+        'total': total,
+        'tournament_status': tournament_status,
+        'latest_round_num': latest_round_num,
+        })
 
 @admin_required
 def all_participants_in_tournament(request, *args, **kwargs):
@@ -149,7 +173,8 @@ def start_tournament(request, *args, **kwargs):
     round_num = hosting.current_round
     hosting.total_rounds = number_of_rounds
     hosting.save()
-    state.close_registration(tournament=tournament)
+    if tournament.status != 'REGISTRATION_CLOSED':
+        state.close_registration(tournament=tournament)
 
     return render(request, 'tournaments/tournament_confirmation.html', {
         'tournament': tournament, 
@@ -170,6 +195,8 @@ def hosting_tournament_round(request, uuid, round_num, *args, **kwargs):
     :param kwargs: Description
     '''
     tournament = get_object_or_404(Tournament, uuid=uuid)
+    if tournament.status != 'ONGOING':
+        state.start_tournament(tournament=tournament)
     hosting = get_object_or_404(HostTournament, tournament=tournament)
     hosting.current_round = round_num
     hosting.save()
@@ -190,6 +217,18 @@ def hosting_tournament_round(request, uuid, round_num, *args, **kwargs):
                         )
                 tournament_round.save()
 
+            case 'ROUND_ROBIN':
+                pairs = round_robin.generate_round_robin_pairings(tournament=tournament, round_model=tournament_round)
+                for idx, pair in enumerate(pairs, start=1):
+                    Match.objects.get_or_create(
+                            tournament = tournament, 
+                            round_num = round_num,
+                            player_1 = pair[0],
+                            player_2 = pair[1],
+                            round_model = tournament_round,
+                            ordering = idx  
+                        )
+                tournament_round.save()
             case _:
                 pairs = rounds.generate_pairings(tournament=tournament)
                 for idx, pair in enumerate(pairs, start=1):
@@ -297,6 +336,8 @@ def tournament_end(request, uuid, *args, **kwargs):
     tournament = get_object_or_404(Tournament, uuid=uuid)
     tournament.is_finished = True
     tournament.save()
+    if tournament.status != 'CLOSED':
+        state.end_tournament(tournament=tournament)
 
     all_participants = Participant.objects.filter(tournament=tournament).exclude(name='BYE').order_by('-total_points')
     multiple_winners = False
@@ -393,7 +434,6 @@ def upload_csv(request, uuid):
         csv_file = request.FILES.get('csv_file')
         if not csv_file:
             print('bad')
-
         else:
             print('good')
             imports, errors = participants.import_participants_from_csv(tournament=tournament, file=csv_file)

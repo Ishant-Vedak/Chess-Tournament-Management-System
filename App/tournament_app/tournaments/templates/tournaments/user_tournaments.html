@@ -21,9 +21,7 @@
     <h2> Joined Tournaments</h2>
     {% if tournaments %}
     {% for tournament in tournaments %}
-    <a href="{% url 'tournaments:tournament_details' tournament.uuid %}">
-        {{ tournament.name }}
-    </a>
+    <a href="{% url 'tournaments:tournament_details' tournament.uuid %}"><div>{{ tournament.name }}</div></a>
     {% endfor %}
     {% else %} 
     <p> No Joined Tournaments </p>

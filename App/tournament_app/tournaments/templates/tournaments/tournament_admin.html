@@ -7,9 +7,12 @@
 </head>
 <body>
     <h1>{{ tournament.name }} Admin Page<h1>
+    <h2>Tournament Status: {{tournament_status}}</h2>
     <h2> Total Participants: {{ total }} </h2>
     {% if tournament.is_finished %}
     <a href="{% url 'tournaments:tournament_end' tournament.uuid %}"><button>View Tournament Results</button></a>
+    {% elif tournament.status == 'ONGOING' %}
+    <a href="{% url 'tournaments:tournament_round' uuid=tournament.uuid round_num=latest_round_num %}"><button>Resume Tournament: Round {{ latest_round_num }}</button></a>
     {% else %}
     <a href="{% url 'tournaments:start_tournament' tournament.uuid %}"><button>Start Tournament</button></a>
     {% endif %}

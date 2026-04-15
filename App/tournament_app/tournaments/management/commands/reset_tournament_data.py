@@ -26,6 +26,7 @@ class Command(shell.BaseCommand):
             p.color_history = None
             p.save()
         t.is_finished = False
+        t.status = 'REGISTRATION_OPEN'
         t.save()
         self.stdout.write(
             self.style.SUCCESS(f'Successfully reset data for {name}.')

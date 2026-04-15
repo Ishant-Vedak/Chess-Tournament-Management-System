@@ -4,12 +4,22 @@ from .models import Tournament, Participant
 class CreateTournament(forms.ModelForm):
     class Meta:
         model = Tournament
-        fields = ("name", "status", "type", "club")
+        fields = ["name", "format"]
+        labels = {
+            'name': 'Tournament Name',
+            'format': 'Tournament Format',
+        }
     
 class TournamentSettings(forms.ModelForm):
     class Meta:
         model = Tournament
-        fields = ['name', 'creation_date', 'status', 'type', 'format', 'club', 'rounds'] 
+        fields = ['name', 'creation_date', 'status', 'format', 'club', 'rounds'] 
+        labels = {
+            'name': 'Tournament Name',
+            'creation_date': 'Creation Date',
+            'status': 'Tournament Status',
+            'format': 'Tournament Format',
+        }
 
 class RegisterParticipant(forms.ModelForm):
     class Meta: 
