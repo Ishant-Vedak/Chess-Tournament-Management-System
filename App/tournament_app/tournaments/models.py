@@ -199,7 +199,7 @@ class Match(models.Model):
     id = models.AutoField(primary_key=True)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE) #needed
-    round_model = models.ForeignKey(Round, on_delete=models.CASCADE, related_name='matches', null=True) #Make sure every match has this.
+    round_model = models.ForeignKey(Round, on_delete=models.CASCADE, related_name='matches', null=True) #needed
     round_num = models.IntegerField(default=0) #needed
     player_1 = models.ForeignKey(Participant, related_name='p1', on_delete=models.CASCADE)
     player_2 = models.ForeignKey(Participant, related_name='p2', on_delete=models.CASCADE)

@@ -6,7 +6,7 @@ from .forms import CreateTournament, TournamentSettings, RegisterParticipant
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from .services import rounds, participants, state, swiss, round_robin, knockout
-from django.db.models import Max
+from django.db.models import Max, Q
 import io
 import csv
 
@@ -75,12 +75,11 @@ def create_tournament(request):
             with transaction.atomic():
                 tournament = Tournament.objects.create(
                     name=form.cleaned_data['name'],
-                    status=form.cleaned_data['status'],
-                    type=form.cleaned_data['type'], 
                     club=form.cleaned_data['club'],
                     lead_organizer=user,
                 )
                 tournament.rounds = rounds.generate_total_number_of_rounds(tournament=tournament)
+                tournament.status = 'REGISTRATION_OPEN'
                 tournament.save()
                 join = JoinTournament.objects.create(
                     user=user,
@@ -105,7 +104,10 @@ def my_tournaments(request):
             continue
         joined_tournaments.append(t)
         continue
-    return render(request, 'tournaments/user_tournaments.html', {'tournaments': joined_tournaments, 'admin_tournaments': admin_tournaments})
+    return render(request, 'tournaments/user_tournaments.html', {
+        'tournaments': joined_tournaments, 
+        'admin_tournaments': admin_tournaments
+        })
 
 def confirm_tournament(request):
     tournament = request.user.tournaments.latest()
@@ -128,6 +130,8 @@ def tournament_admin(request, *args, **kwargs):
         tournament.save()
     
     latest_round_num = 0
+    tournament.refresh_from_db()
+    
     match tournament.status:
         case 'REGISTRATION_OPEN':
             tournament_status = 'Registration is Open.'
@@ -226,9 +230,22 @@ def hosting_tournament_round(request, uuid, round_num, *args, **kwargs):
                             player_1 = pair[0],
                             player_2 = pair[1],
                             round_model = tournament_round,
-                            ordering = idx  
+                            ordering = idx, 
                         )
                 tournament_round.save()
+
+            case 'KNOCKOUT':
+                pairs = knockout.generate_knockout_pairings(tournament=tournament, round_model=tournament_round)
+                for idx, pair in enumerate(pairs, start=1):
+                    Match.objects.get_or_create(
+                            tournament=tournament,
+                            round_num=round_num,
+                            player_1 = pair[0],
+                            player_2 = pair[1],
+                            round_model = tournament_round,
+                            ordering = idx,
+                        )
+
             case _:
                 pairs = rounds.generate_pairings(tournament=tournament)
                 for idx, pair in enumerate(pairs, start=1):
@@ -242,22 +259,40 @@ def hosting_tournament_round(request, uuid, round_num, *args, **kwargs):
                         )
                 tournament_round.save()
 
-    if Participant.objects.filter(name='BYE').exists():
-        bye_player = Participant.objects.get(name='BYE')
-        if Match.objects.filter(round_num=round_num, round_model= tournament_round, player_1=bye_player).exists():
-            bye_match = Match.objects.get(player_1=bye_player,round_num=round_num, round_model=tournament_round)
-            bye_match.p2_points += 1
-            bye_match.p1_result = 'LOSS'
-            bye_match.p2_result = 'WIN'
-            bye_match.isCompleted = True
-            bye_match.save()
+    # if Participant.objects.filter(name='BYE').exists():
+    #     bye_player = Participant.objects.get(name='BYE', tournament=tournament)
+    #     if Match.objects.filter(round_num=round_num, round_model= tournament_round, player_1=bye_player).exists():
+    #         bye_match = Match.objects.get(player_1=bye_player,round_num=round_num, round_model=tournament_round)
+    #         bye_match.p2_points += 1
+    #         bye_match.p1_result = 'LOSS'
+    #         bye_match.p2_result = 'WIN'
+    #         bye_match.isCompleted = True
+    #         bye_match.save()
+    #     else:
+    #         bye_match = Match.objects.get(player_2=bye_player, round_num=round_num, round_model=tournament_round)
+    #         bye_match.p1_points += 1
+    #         bye_match.p2_result = 'LOSS'
+    #         bye_match.p1_result = 'WIN'
+    #         bye_match.isCompleted = True
+    #         bye_match.save()
+
+    bye_matches = Match.objects.filter(tournament=tournament, round_model = tournament_round).filter(
+        Q(player_1__name='BYE') | Q(player_2__name='BYE')
+    )
+    print(len(bye_matches))
+    print(bye_matches)
+    for bm in bye_matches:
+        if bm.player_1.name == 'BYE':
+            bm.p2_points += 1
+            bm.p1_result = 'LOSS'
+            bm.p2_result = 'WIN'
         else:
-            bye_match = Match.objects.get(player_2=bye_player, round_num=round_num, round_model=tournament_round)
-            bye_match.p1_points += 1
-            bye_match.p2_result = 'LOSS'
-            bye_match.p1_result = 'WIN'
-            bye_match.isCompleted = True
-            bye_match.save()
+            bm.p1_points += 1
+            bm.p1_result = 'WIN'
+            bm.p2_result = 'LOSS'
+        bm.isCompleted = True
+        bm.save()
+        print('flag 2')
 
     rounds.start_round(tournament=tournament)
 
@@ -293,7 +328,6 @@ def end_tournament_round(request, uuid, round_num, *args, **kwargs):
     :param kwargs: Description
     '''
     tournament = get_object_or_404(Tournament, uuid=uuid)
-    hosting = get_object_or_404(HostTournament, tournament=tournament)
     matches = Match.objects.filter(tournament=tournament, round_num = round_num)
     rounds.end_round(tournament=tournament)
     for p in Participant.objects.filter(tournament=tournament).exclude(name='BYE'):
@@ -306,7 +340,7 @@ def end_tournament_round(request, uuid, round_num, *args, **kwargs):
     for ma in matches:
         print(f'{ma.player_1.name}: {ma.player_1.total_points} points -- {ma.player_2.name}: {ma.player_2.total_points} points.')
 
-    next_round_num = int(hosting.current_round) + 1
+    next_round_num = round_num + 1
 
     context = {
         'tournament': tournament,

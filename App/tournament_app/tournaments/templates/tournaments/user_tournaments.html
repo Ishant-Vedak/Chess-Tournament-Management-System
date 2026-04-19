@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <title>{{ request.user.username }}'s Tournaments</title>
+    <link rel="stylesheet" href="{% static 'tournaments/styles.css' %}">
 </head>
 <body>
     <h1>{{ request.user.username }}'s Tournaments</h1>
@@ -11,7 +12,7 @@
     {% if admin_tournaments %}
     {% for admin_t in admin_tournaments %}
     <a href="{% url 'tournaments:tournament_admin' admin_t.uuid %}">
-        {{ admin_t.name }}
+        <div>{{ admin_t.name }}</div>
     </a>
     {% endfor %}
     {% else %} 

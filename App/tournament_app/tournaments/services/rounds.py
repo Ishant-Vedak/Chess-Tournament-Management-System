@@ -87,7 +87,6 @@ def generate_total_number_of_rounds(tournament: Tournament):
     
     elif tournament.format == 'KNOCKOUT':
         num_of_rounds = math.ceil(math.log2(total_participants))
-
     else:
          raise InvalidState("Tournament does not have correct format.")
 

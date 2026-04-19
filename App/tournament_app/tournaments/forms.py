@@ -4,10 +4,11 @@ from .models import Tournament, Participant
 class CreateTournament(forms.ModelForm):
     class Meta:
         model = Tournament
-        fields = ["name", "format"]
+        fields = ["name", "format", 'club']
         labels = {
             'name': 'Tournament Name',
             'format': 'Tournament Format',
+            'club': 'Organizer Club',
         }
     
 class TournamentSettings(forms.ModelForm):

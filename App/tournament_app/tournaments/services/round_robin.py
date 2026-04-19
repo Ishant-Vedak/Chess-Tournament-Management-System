@@ -7,7 +7,7 @@ from django.db.models import Sum
 
 #Main
 
-def generate_round_robin_pairings(tournament: Tournament, round_model=Round):
+def generate_round_robin_pairings(tournament: Tournament, round_model: Round):
     participants = list(Participant.objects.filter(tournament=tournament).exclude(name='BYE').order_by('-cfc_rating'))
     
     if len(participants) % 2 != 0:

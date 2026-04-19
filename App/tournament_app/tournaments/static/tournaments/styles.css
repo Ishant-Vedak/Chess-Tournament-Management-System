@@ -15,6 +15,10 @@ p {
     
 }
 
+a {
+    display: block;
+    text-decoration: none;
+}
 
 .no_dihsplay{
     display: none;
